@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>硬件产品常用计算与单位换算工具</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">Hardware PM Toolkit</p>
+      <h1>硬件产品常用计算与单位换算工具</h1>
+      <p class="hero-desc">聚焦硬件方案评估中的高频工程估算：电机、显示屏、功耗与核心收线系统联动计算。</p>
+    </div>
+    <div class="hero-actions">
+      <button id="copy-summary" class="secondary-btn">复制当前结果摘要</button>
+      <button id="clear-all" class="primary-btn">清空全部输入</button>
+    </div>
+  </header>
+
+  <nav class="top-nav">
+    <a href="#motor-drive">电机与传动</a>
+    <a href="#display-panel">显示屏计算</a>
+    <a href="#power-battery">功耗/电池</a>
+    <a href="#unit-converter">单位换算</a>
+    <a href="#spooling-core">收线系统联动</a>
+  </nav>
+
+  <main class="app-grid">
+    <section class="module-card intro-strip">
+      <div>
+        <h2>使用说明</h2>
+        <p>所有计算均在浏览器本地完成，离线可用。内部统一采用 m / N / N·m；涉及直径和力臂时会自动进行 mm → m 转换。</p>
+      </div>
+      <div class="mini-tags">
+        <span>纯前端</span>
+        <span>离线运行</span>
+        <span>工程估算</span>
+        <span>无第三方库</span>
+      </div>
+    </section>
+
+    <section id="motor-drive" class="module-card">
+      <div class="module-header">
+        <div>
+          <h2>模块 A：电机与传动计算</h2>
+          <p>用于功率三选二、减速后转速估算与理想 T-N 曲线查看。</p>
+        </div>
+        <span class="badge">基础模块</span>
+      </div>
+
+      <div class="sub-grid two-col">
+        <article class="panel spotlight-panel">
+          <h3>功率三选二</h3>
+          <p class="hint">公式：P = T × 2π × n / 60</p>
+          <div class="field-grid">
+            <label>扭矩 T (N·m)
+              <input id="motor-torque" type="number" step="any" min="0" placeholder="例如 0.45" />
+            </label>
+            <label>转速 n (rpm)
+              <input id="motor-speed" type="number" step="any" min="0" placeholder="例如 3200" />
+            </label>
+            <label>功率 P (W)
+              <input id="motor-power" type="number" step="any" min="0" placeholder="例如 150" />
+            </label>
+          </div>
+          <div id="motor-power-output" class="result-box"></div>
+        </article>
+
+        <article class="panel">
+          <h3>减速后输出转速</h3>
+          <div class="field-grid compact-grid">
+            <label>电机转速 (rpm)
+              <input id="gear-input-speed" type="number" step="any" min="0" placeholder="例如 3000" />
+            </label>
+            <label>减速比 i
+              <input id="gear-ratio" type="number" step="any" min="0" placeholder="例如 20" />
+            </label>
+          </div>
+          <div id="gear-output" class="result-box"></div>
+        </article>
+      </div>
+
+      <article class="panel tn-panel">
+        <div class="panel-headline">
+          <div>
+            <h3>理想 T-N 曲线</h3>
+            <p class="hint">输入空载转速与堵转扭矩，查看理想线性曲线与任意点估算。</p>
+          </div>
+        </div>
+        <div class="field-grid tn-grid">
+          <label>空载转速 n₀ (rpm)
+            <input id="tn-no-load" type="number" step="any" min="0" placeholder="例如 5000" />
+          </label>
+          <label>堵转扭矩 Tₛ (N·m)
+            <input id="tn-stall" type="number" step="any" min="0" placeholder="例如 1.2" />
+          </label>
+          <label>查询转速 (rpm)
+            <input id="tn-query-speed" type="number" step="any" min="0" placeholder="输入任意点" />
+          </label>
+          <label>查询扭矩 (N·m)
+            <input id="tn-query-torque" type="number" step="any" min="0" placeholder="输入任意点" />
+          </label>
+        </div>
+        <canvas id="tn-canvas" width="700" height="280" aria-label="T-N 曲线图"></canvas>
+        <div id="tn-output" class="result-box"></div>
+      </article>
+    </section>
+
+    <section id="display-panel" class="module-card">
+      <div class="module-header">
+        <div>
+          <h2>模块 D：显示屏计算</h2>
+          <p>快速估算 PPI、长宽比与总像素。</p>
+        </div>
+      </div>
+      <div class="sub-grid three-col">
+        <article class="panel">
+          <h3>PPI</h3>
+          <div class="field-grid compact-grid">
+            <label>分辨率宽 (px)
+              <input id="ppi-width" type="number" step="1" min="0" />
+            </label>
+            <label>分辨率高 (px)
+              <input id="ppi-height" type="number" step="1" min="0" />
+            </label>
+            <label>对角线 (inch)
+              <input id="ppi-diagonal" type="number" step="any" min="0" />
+            </label>
+          </div>
+          <div id="ppi-output" class="result-box"></div>
+        </article>
+
+        <article class="panel">
+          <h3>长宽比</h3>
+          <div class="field-grid compact-grid">
+            <label>宽 (px)
+              <input id="ratio-width" type="number" step="1" min="0" />
+            </label>
+            <label>高 (px)
+              <input id="ratio-height" type="number" step="1" min="0" />
+            </label>
+          </div>
+          <div id="ratio-output" class="result-box"></div>
+        </article>
+
+        <article class="panel">
+          <h3>总像素</h3>
+          <div class="field-grid compact-grid">
+            <label>宽 (px)
+              <input id="pixel-width" type="number" step="1" min="0" />
+            </label>
+            <label>高 (px)
+              <input id="pixel-height" type="number" step="1" min="0" />
+            </label>
+          </div>
+          <div id="pixel-output" class="result-box"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="power-battery" class="module-card">
+      <div class="module-header">
+        <div>
+          <h2>模块 E：功耗 / 电池</h2>
+          <p>用于功率、电池能量与续航粗估。</p>
+        </div>
+      </div>
+      <div class="sub-grid three-col">
+        <article class="panel">
+          <h3>P = U × I</h3>
+          <div class="field-grid compact-grid">
+            <label>电压 U (V)
+              <input id="power-voltage" type="number" step="any" min="0" />
+            </label>
+            <label>电流 I (A)
+              <input id="power-current" type="number" step="any" min="0" />
+            </label>
+          </div>
+          <div id="power-output" class="result-box"></div>
+        </article>
+
+        <article class="panel">
+          <h3>续航估算</h3>
+          <div class="field-grid compact-grid">
+            <label>电池能量 (Wh)
+              <input id="runtime-wh" type="number" step="any" min="0" />
+            </label>
+            <label>平均功耗 (W)
+              <input id="runtime-watt" type="number" step="any" min="0" />
+            </label>
+          </div>
+          <div id="runtime-output" class="result-box"></div>
+        </article>
+
+        <article class="panel">
+          <h3>mAh ↔ Wh</h3>
+          <div class="field-grid compact-grid">
+            <label>容量 (mAh)
+              <input id="mah-value" type="number" step="any" min="0" />
+            </label>
+            <label>电压 (V)
+              <input id="mah-voltage" type="number" step="any" min="0" />
+            </label>
+            <label>能量 (Wh)
+              <input id="wh-value" type="number" step="any" min="0" />
+            </label>
+          </div>
+          <div id="battery-output" class="result-box"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="unit-converter" class="module-card">
+      <div class="module-header">
+        <div>
+          <h2>模块 F：单位换算</h2>
+          <p>常用工程单位快速换算，适合方案评审和参数整理。</p>
+        </div>
+      </div>
+      <article class="panel">
+        <div class="converter-grid">
+          <label>类别
+            <select id="converter-type"></select>
+          </label>
+          <label>输入数值
+            <input id="converter-input" type="number" step="any" />
+          </label>
+          <label>从
+            <select id="converter-from"></select>
+          </label>
+          <label>到
+            <select id="converter-to"></select>
+          </label>
+        </div>
+        <div id="converter-output" class="result-box"></div>
+      </article>
+    </section>
+
+    <section id="spooling-core" class="module-card core-card">
+      <div class="module-header">
+        <div>
+          <h2>模块 G：收线系统联动计算（核心）</h2>
+          <p>实现速度 ↔ 拉力 ↔ 电机参数联动；收线速度统一显示为 m/min。</p>
+        </div>
+        <span class="badge accent">核心模块</span>
+      </div>
+
+      <div class="core-layout">
+        <article class="panel core-input-panel">
+          <h3>输入参数</h3>
+          <div class="field-grid">
+            <label>减速比 i
+              <input id="spool-ratio" type="number" step="any" min="0" placeholder="例如 25" />
+            </label>
+            <label>卷筒直径 D (mm)
+              <input id="spool-diameter" type="number" step="any" min="0" placeholder="例如 60" />
+            </label>
+            <label>效率 η
+              <input id="spool-efficiency" type="number" step="any" min="0" max="1" placeholder="例如 0.82" />
+            </label>
+          </div>
+
+          <div class="radio-group" id="spool-mode-group">
+            <label><input type="radio" name="spool-mode" value="speed" checked /> 收线速度</label>
+            <label><input type="radio" name="spool-mode" value="force" /> 拉力</label>
+            <label><input type="radio" name="spool-mode" value="motorSpeed" /> 电机转速</label>
+            <label><input type="radio" name="spool-mode" value="motorTorque" /> 电机扭矩</label>
+          </div>
+
+          <div class="field-grid">
+            <label>收线速度 (m/min)
+              <input id="spool-speed" type="number" step="any" min="0" />
+            </label>
+            <label>拉力 (kg)
+              <input id="spool-force-kg" type="number" step="any" min="0" />
+            </label>
+            <label>电机转速 (rpm)
+              <input id="spool-motor-speed" type="number" step="any" min="0" />
+            </label>
+            <label>电机扭矩 (N·m)
+              <input id="spool-motor-torque" type="number" step="any" min="0" />
+            </label>
+          </div>
+
+          <div class="note-box">提示：理想模型，不考虑卷径变化；η 必须在 0~1 之间。</div>
+        </article>
+
+        <article class="panel core-output-panel">
+          <div class="output-title-row">
+            <div>
+              <h3>联动输出</h3>
+              <p class="hint">输入一项主参数后，系统自动联动推算其他参数。</p>
+            </div>
+          </div>
+          <div id="spool-output" class="card-grid"></div>
+          <div class="formula-list">
+            <h4>公式说明</h4>
+            <ul>
+              <li>v = π × D × n<sub>out</sub></li>
+              <li>n<sub>motor</sub> = n<sub>out</sub> × i</li>
+              <li>T<sub>out</sub> = T<sub>motor</sub> × i × η</li>
+              <li>F = T<sub>out</sub> / r</li>
+              <li>r = D / 2</li>
+            </ul>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
