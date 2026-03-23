@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YouTube 下载链接生成器</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <main class="card">
+      <h1>YouTube 下载链接生成器</h1>
+      <p>输入视频链接后，选择清晰度并生成可下载地址。</p>
+      <div class="row">
+        <input id="videoUrl" placeholder="https://www.youtube.com/watch?v=..." />
+        <button id="analyzeBtn">解析</button>
+      </div>
+      <div id="videoMeta" class="meta hidden">
+        <img id="thumb" alt="thumbnail" />
+        <h2 id="title"></h2>
+      </div>
+      <div id="qualityBox" class="hidden">
+        <label for="qualitySelect">选择清晰度</label>
+        <select id="qualitySelect"></select>
+        <button id="generateBtn">生成下载连接</button>
+      </div>
+      <a id="downloadLink" class="hidden" target="_blank" rel="noopener">点击下载</a>
+      <p id="status"></p>
+    </main>
+    <script src="/static/app.js"></script>
+  </body>
+</html>
