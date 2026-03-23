@@ -1,0 +1,354 @@
+:root {
+  --bg: #f4f7fb;
+  --surface: #ffffff;
+  --surface-alt: #eef3fb;
+  --border: #d7e0eb;
+  --text: #16324f;
+  --muted: #5f748d;
+  --primary: #2166d1;
+  --primary-soft: #dbe8ff;
+  --accent: #0d9488;
+  --danger: #c2410c;
+  --shadow: 0 12px 30px rgba(15, 37, 64, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px 32px 20px;
+  background: linear-gradient(135deg, #ffffff 10%, #edf4ff 100%);
+  border-bottom: 1px solid var(--border);
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--primary);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 8px;
+  font-size: 30px;
+}
+
+.hero-desc {
+  max-width: 760px;
+  color: var(--muted);
+  margin-bottom: 0;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.top-nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 14px 32px;
+  background: rgba(244, 247, 251, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.top-nav a {
+  text-decoration: none;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 14px;
+}
+
+.app-grid {
+  padding: 24px 32px 48px;
+  display: grid;
+  gap: 22px;
+}
+
+.module-card,
+.panel,
+.result-box,
+.note-box,
+.history-item,
+.output-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+
+.module-card {
+  padding: 22px;
+}
+
+.module-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.badge.accent {
+  background: rgba(13, 148, 136, 0.12);
+  color: var(--accent);
+}
+
+.sub-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.two-col {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.three-col {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.panel {
+  padding: 18px;
+}
+
+.field-grid,
+.converter-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.field-grid {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.converter-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+input,
+select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fbfdff;
+  padding: 10px 12px;
+  color: var(--text);
+}
+
+input:focus,
+select:focus,
+button:focus {
+  outline: 2px solid rgba(33, 102, 209, 0.2);
+  outline-offset: 1px;
+}
+
+.primary-btn,
+.secondary-btn {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.primary-btn {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.secondary-btn {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.result-box,
+.note-box {
+  margin-top: 14px;
+  padding: 14px 16px;
+}
+
+.result-box:empty::before {
+  content: "输入有效参数后，此处显示计算结果。";
+  color: var(--muted);
+}
+
+.hint,
+.note-box,
+.formula-list,
+.history-time {
+  color: var(--muted);
+}
+
+.tn-panel canvas {
+  width: 100%;
+  margin-top: 12px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fdfefe 0%, #f3f7fc 100%);
+  border: 1px solid var(--border);
+}
+
+.radio-group {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.radio-group label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.output-card {
+  padding: 14px;
+  background: linear-gradient(180deg, #fff 0%, #f5f9ff 100%);
+}
+
+.output-card .label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.output-card .value {
+  font-size: 22px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.formula-list ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.history-list {
+  display: grid;
+  gap: 12px;
+}
+
+.history-item {
+  padding: 14px 16px;
+}
+
+.history-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.metric-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.error {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.success {
+  color: var(--accent);
+}
+
+@media (max-width: 1120px) {
+  .two-col,
+  .three-col,
+  .converter-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .hero {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 720px) {
+  .app-grid,
+  .top-nav,
+  .hero {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .two-col,
+  .three-col,
+  .converter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .history-top,
+  .module-header {
+    flex-direction: column;
+  }
+}
