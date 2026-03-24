@@ -21,21 +21,21 @@
 }
 
 body.theme-dark {
-  --bg: #1f1f1f;
-  --surface: #2f2f2f;
-  --surface-soft: #262626;
-  --border: #3f3f46;
+  --bg: #212121;
+  --surface: #2a2a2a;
+  --surface-soft: #242424;
+  --border: #3a3a3a;
   --text: #ececf1;
   --muted: #a1a1aa;
   --primary: #19c37d;
   --primary-strong: #49d79b;
-  --accent: #60a5fa;
-  --shadow: 0 12px 28px rgba(0, 0, 0, 0.32);
-  --canvas-bg: #262626;
-  --canvas-axis: #52525b;
+  --accent: #8f8f8f;
+  --shadow: none;
+  --canvas-bg: #242424;
+  --canvas-axis: #4a4a4a;
   --canvas-line: #19c37d;
-  --canvas-point: #fbbf24;
-  --canvas-query: #60a5fa;
+  --canvas-point: #b8b8b8;
+  --canvas-query: #d4d4d8;
 }
 
 * { box-sizing: border-box; }
@@ -197,6 +197,60 @@ input:disabled { background: #eef2f7; color: #8ca0b8; }
 .formula-list ul, .metric-list { padding-left: 18px; }
 .error { color: #dc2626; font-weight: 600; }
 .is-hidden { display: none; }
+
+body.theme-dark {
+  background: #212121;
+}
+
+body.theme-dark .module-card,
+body.theme-dark .panel,
+body.theme-dark .result-box,
+body.theme-dark .note-box,
+body.theme-dark .output-card {
+  background: #2a2a2a;
+  box-shadow: none;
+}
+
+body.theme-dark .intro-strip,
+body.theme-dark .selector-card,
+body.theme-dark .module-theme-a,
+body.theme-dark .module-theme-b,
+body.theme-dark .module-theme-c,
+body.theme-dark .module-theme-d,
+body.theme-dark .module-theme-e {
+  background: #2a2a2a;
+}
+
+body.theme-dark .module-toggle {
+  background: #303030;
+  border-color: #454545;
+  box-shadow: none;
+}
+
+body.theme-dark .module-toggle.is-active {
+  border-color: #19c37d;
+  box-shadow: none;
+}
+
+body.theme-dark input,
+body.theme-dark select,
+body.theme-dark textarea {
+  background: #232323;
+  border-color: #454545;
+  color: #ececf1;
+}
+
+body.theme-dark .secondary-btn {
+  background: #303030;
+  border-color: #454545;
+  color: #ececf1;
+}
+
+body.theme-dark .primary-btn {
+  background: #19c37d;
+  border-color: #19c37d;
+  color: #111827;
+}
 
 @media (max-width: 1260px) {
   .module-selector-grid, .three-col, .converter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
