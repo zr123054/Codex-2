@@ -1,44 +1,21 @@
 const G = 9.81;
 
 const unitConfig = {
-  length: {
-    label: '长度',
-    units: { mm: 0.001, cm: 0.01, m: 1, inch: 0.0254 }
-  },
-  mass: {
-    label: '质量',
-    units: { g: 0.001, kg: 1, lb: 0.45359237 }
-  },
-  force: {
-    label: '力',
-    units: { N: 1, kgf: G, lbf: 4.4482216153 }
-  },
-  torque: {
-    label: '扭矩',
-    units: { 'N·m': 1, 'N·cm': 0.01, 'kgf·cm': G * 0.01 }
-  },
-  speed: {
-    label: '转速',
-    units: { rpm: 1, rps: 60, 'rad/s': 60 / (2 * Math.PI) }
-  },
-  power: {
-    label: '功率',
-    units: { W: 1, kW: 1000, hp: 745.699872 }
-  },
-  current: {
-    label: '电流',
-    units: { mA: 0.001, A: 1 }
-  },
-  voltage: {
-    label: '电压',
-    units: { mV: 0.001, V: 1, kV: 1000 }
-  }
+  length: { label: '长度', units: { mm: 0.001, cm: 0.01, m: 1, inch: 0.0254 } },
+  mass: { label: '质量', units: { g: 0.001, kg: 1, lb: 0.45359237 } },
+  force: { label: '力', units: { N: 1, kgf: G, lbf: 4.4482216153 } },
+  torque: { label: '扭矩', units: { 'N·m': 1, 'N·cm': 0.01, 'kgf·cm': G * 0.01 } },
+  speed: { label: '转速', units: { rpm: 1, rps: 60, 'rad/s': 60 / (2 * Math.PI) } },
+  power: { label: '功率', units: { W: 1, kW: 1000, hp: 745.699872 } },
+  current: { label: '电流', units: { mA: 0.001, A: 1 } },
+  voltage: { label: '电压', units: { mV: 0.001, V: 1, kV: 1000 } }
 };
 
 const els = {};
 
 document.addEventListener('DOMContentLoaded', () => {
   bindElements();
+  initModuleSelector();
   initConverter();
   initSpoolMode();
   bindEvents();
@@ -59,8 +36,41 @@ function bindEvents() {
     computeSpool();
   }));
 
+  document.querySelectorAll('.module-toggle').forEach((button) => {
+    button.addEventListener('click', () => toggleModule(button.dataset.target));
+  });
+
+  els['show-all-modules'].addEventListener('click', showAllModules);
+  els['hide-all-modules'].addEventListener('click', hideAllModules);
   els['copy-summary'].addEventListener('click', copySummary);
   els['clear-all'].addEventListener('click', clearAllInputs);
+}
+
+function initModuleSelector() {
+  syncModuleVisibility();
+}
+
+function toggleModule(targetId) {
+  const button = document.querySelector(`.module-toggle[data-target="${targetId}"]`);
+  button.classList.toggle('is-active');
+  syncModuleVisibility();
+}
+
+function showAllModules() {
+  document.querySelectorAll('.module-toggle').forEach((button) => button.classList.add('is-active'));
+  syncModuleVisibility();
+}
+
+function hideAllModules() {
+  document.querySelectorAll('.module-toggle').forEach((button) => button.classList.remove('is-active'));
+  syncModuleVisibility();
+}
+
+function syncModuleVisibility() {
+  document.querySelectorAll('.module-toggle').forEach((button) => {
+    const section = document.getElementById(button.dataset.target);
+    section.classList.toggle('is-hidden', !button.classList.contains('is-active'));
+  });
 }
 
 function handleInput(event) {
@@ -113,28 +123,22 @@ function computeMotorPower() {
     setHtml('motor-power-output', '<span class="hint">请输入三项中的任意两项，自动反算第三项。</span>');
     return;
   }
-
   if (known.length > 2) {
-    const expectedPower = torque * 2 * Math.PI * speed / 60;
-    setHtml('motor-power-output', `<strong>理论功率：</strong>${format(expectedPower)} W`);
+    setHtml('motor-power-output', `<strong>理论功率：</strong>${format(torque * 2 * Math.PI * speed / 60)} W`);
     return;
   }
-
   if (!Number.isFinite(power) && validPositive(torque) && validPositive(speed)) {
     setHtml('motor-power-output', `<strong>功率：</strong>${format(torque * 2 * Math.PI * speed / 60)} W`);
     return;
   }
-
   if (!Number.isFinite(speed) && validPositive(torque) && validPositive(power)) {
     setHtml('motor-power-output', `<strong>转速：</strong>${format(power * 60 / (torque * 2 * Math.PI))} rpm`);
     return;
   }
-
   if (!Number.isFinite(torque) && validPositive(speed) && validPositive(power)) {
     setHtml('motor-power-output', `<strong>扭矩：</strong>${format(power * 60 / (speed * 2 * Math.PI))} N·m`);
     return;
   }
-
   setHtml('motor-power-output', '<span class="error">参数不能为 0，且必须为有效数字。</span>');
 }
 
@@ -160,13 +164,9 @@ function computeTnCurve() {
     return;
   }
 
-  const items = [`斜率：-${format(stall / noLoad, 6)} N·m / rpm`];
-  if (Number.isFinite(qSpeed)) {
-    items.push(`在 ${format(qSpeed)} rpm 时，扭矩约 ${format(stall * Math.max(0, 1 - qSpeed / noLoad))} N·m`);
-  }
-  if (Number.isFinite(qTorque)) {
-    items.push(`在 ${format(qTorque)} N·m 时，转速约 ${format(noLoad * Math.max(0, 1 - qTorque / stall))} rpm`);
-  }
+  const items = [`斜率：-${format(stall / noLoad, 2)} N·m / rpm`];
+  if (Number.isFinite(qSpeed)) items.push(`在 ${format(qSpeed)} rpm 时，扭矩约 ${format(stall * Math.max(0, 1 - qSpeed / noLoad))} N·m`);
+  if (Number.isFinite(qTorque)) items.push(`在 ${format(qTorque)} N·m 时，转速约 ${format(noLoad * Math.max(0, 1 - qTorque / stall))} rpm`);
   setHtml('tn-output', `<ul class="metric-list">${items.map((item) => `<li>${item}</li>`).join('')}</ul>`);
 }
 
@@ -187,13 +187,13 @@ function drawTnCurve(noLoad, stall, qSpeed, qTorque) {
   ctx.lineTo(pad, pad);
   ctx.stroke();
 
-  ctx.fillStyle = '#60748b';
+  ctx.fillStyle = '#687994';
   ctx.font = '12px sans-serif';
   ctx.fillText('转速 rpm', canvas.width - pad - 46, canvas.height - 12);
   ctx.fillText('扭矩 N·m', 10, pad - 10);
 
   if (!validPositive(noLoad) || !validPositive(stall)) {
-    ctx.fillStyle = '#8a9db5';
+    ctx.fillStyle = '#93a1ba';
     ctx.fillText('等待输入有效的空载转速与堵转扭矩', pad + 24, canvas.height / 2);
     return;
   }
@@ -203,19 +203,19 @@ function drawTnCurve(noLoad, stall, qSpeed, qTorque) {
   const x1 = canvas.width - pad;
   const y1 = pad;
 
-  ctx.strokeStyle = '#2166d1';
+  ctx.strokeStyle = '#5b67ff';
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.moveTo(x0, y1);
   ctx.lineTo(x1, y0);
   ctx.stroke();
 
-  ctx.fillStyle = '#2166d1';
+  ctx.fillStyle = '#5b67ff';
   ctx.fillText('0', x0 - 10, y0 + 18);
-  ctx.fillText(`${format(noLoad, 1)}`, x1 - 40, y0 + 18);
+  ctx.fillText(`${format(noLoad, 0)}`, x1 - 40, y0 + 18);
   ctx.fillText(`${format(stall, 2)}`, 8, y1 + 4);
 
-  ctx.fillStyle = '#0d9488';
+  ctx.fillStyle = '#0ea5a1';
   if (Number.isFinite(qSpeed)) {
     const clampedRatio = Math.max(0, Math.min(1, qSpeed / noLoad));
     const x = x0 + (x1 - x0) * clampedRatio;
@@ -223,7 +223,6 @@ function drawTnCurve(noLoad, stall, qSpeed, qTorque) {
     const y = y0 - (y0 - y1) * (torque / stall);
     drawPoint(ctx, x, y, `@${format(qSpeed)} rpm`);
   }
-
   if (Number.isFinite(qTorque)) {
     const torqueRatio = Math.max(0, Math.min(1, qTorque / stall));
     const speed = noLoad * (1 - torqueRatio);
@@ -246,7 +245,7 @@ function computeDisplay() {
   const ppiHeight = parseNum('ppi-height');
   const diagonal = parseNum('ppi-diagonal');
   if (validPositive(ppiWidth) && validPositive(ppiHeight) && validPositive(diagonal)) {
-    setHtml('ppi-output', `<strong>PPI：</strong>${format(Math.hypot(ppiWidth, ppiHeight) / diagonal, 2)}`);
+    setHtml('ppi-output', `<strong>PPI：</strong>${format(Math.hypot(ppiWidth, ppiHeight) / diagonal)} `);
   } else {
     setHtml('ppi-output', '<span class="hint">输入分辨率与尺寸后，估算 PPI。</span>');
   }
@@ -288,7 +287,7 @@ function computeRuntime() {
     return;
   }
   const hours = wh / watt;
-  setHtml('runtime-output', `<strong>续航：</strong>${format(hours, 2)} h<br>约 ${format(hours * 60, 1)} min`);
+  setHtml('runtime-output', `<strong>续航：</strong>${format(hours)} h<br>约 ${format(hours * 60)} min`);
 }
 
 function computeBattery() {
@@ -353,7 +352,6 @@ function initSpoolMode() {
     motorSpeed: els['spool-motor-speed'],
     motorTorque: els['spool-motor-torque']
   };
-
   Object.entries(inputs).forEach(([key, input]) => {
     input.disabled = key !== mode;
   });
@@ -394,34 +392,30 @@ function computeSpool() {
 
   try {
     switch (mode) {
-      case 'speed': {
+      case 'speed':
         if (!validPositive(inputValues.speed)) throw new Error('请输入有效的收线速度。');
         derived.lineSpeedMPerMin = inputValues.speed;
         derived.outputSpeed = derived.lineSpeedMPerMin / (Math.PI * diameterM);
         derived.motorSpeed = derived.outputSpeed * ratio;
         break;
-      }
-      case 'force': {
+      case 'force':
         if (!validPositive(inputValues.force)) throw new Error('请输入有效的拉力。');
         derived.forceN = inputValues.force * G;
         derived.outputTorque = derived.forceN * radiusM;
         derived.motorTorque = derived.outputTorque / (ratio * efficiency);
         break;
-      }
-      case 'motorSpeed': {
+      case 'motorSpeed':
         if (!validPositive(inputValues.motorSpeed)) throw new Error('请输入有效的电机转速。');
         derived.motorSpeed = inputValues.motorSpeed;
         derived.outputSpeed = derived.motorSpeed / ratio;
         derived.lineSpeedMPerMin = Math.PI * diameterM * derived.outputSpeed;
         break;
-      }
-      case 'motorTorque': {
+      case 'motorTorque':
         if (!validPositive(inputValues.motorTorque)) throw new Error('请输入有效的电机扭矩。');
         derived.motorTorque = inputValues.motorTorque;
         derived.outputTorque = derived.motorTorque * ratio * efficiency;
         derived.forceN = derived.outputTorque / radiusM;
         break;
-      }
       default:
         break;
     }
@@ -430,30 +424,14 @@ function computeSpool() {
     return;
   }
 
-  if (validPositive(derived.outputSpeed) && !validPositive(derived.lineSpeedMPerMin)) {
-    derived.lineSpeedMPerMin = Math.PI * diameterM * derived.outputSpeed;
-  }
-  if (validPositive(derived.motorSpeed) && !validPositive(derived.outputSpeed)) {
-    derived.outputSpeed = derived.motorSpeed / ratio;
-  }
-  if (validPositive(derived.motorTorque) && !validPositive(derived.outputTorque)) {
-    derived.outputTorque = derived.motorTorque * ratio * efficiency;
-  }
-  if (validPositive(derived.outputTorque) && !validPositive(derived.forceN)) {
-    derived.forceN = derived.outputTorque / radiusM;
-  }
-  if (validPositive(derived.forceN) && !validPositive(derived.outputTorque)) {
-    derived.outputTorque = derived.forceN * radiusM;
-  }
-  if (validPositive(derived.outputTorque) && !validPositive(derived.motorTorque)) {
-    derived.motorTorque = derived.outputTorque / (ratio * efficiency);
-  }
-  if (validPositive(derived.lineSpeedMPerMin) && !validPositive(derived.outputSpeed)) {
-    derived.outputSpeed = derived.lineSpeedMPerMin / (Math.PI * diameterM);
-  }
-  if (validPositive(derived.outputSpeed) && !validPositive(derived.motorSpeed)) {
-    derived.motorSpeed = derived.outputSpeed * ratio;
-  }
+  if (validPositive(derived.outputSpeed) && !validPositive(derived.lineSpeedMPerMin)) derived.lineSpeedMPerMin = Math.PI * diameterM * derived.outputSpeed;
+  if (validPositive(derived.motorSpeed) && !validPositive(derived.outputSpeed)) derived.outputSpeed = derived.motorSpeed / ratio;
+  if (validPositive(derived.motorTorque) && !validPositive(derived.outputTorque)) derived.outputTorque = derived.motorTorque * ratio * efficiency;
+  if (validPositive(derived.outputTorque) && !validPositive(derived.forceN)) derived.forceN = derived.outputTorque / radiusM;
+  if (validPositive(derived.forceN) && !validPositive(derived.outputTorque)) derived.outputTorque = derived.forceN * radiusM;
+  if (validPositive(derived.outputTorque) && !validPositive(derived.motorTorque)) derived.motorTorque = derived.outputTorque / (ratio * efficiency);
+  if (validPositive(derived.lineSpeedMPerMin) && !validPositive(derived.outputSpeed)) derived.outputSpeed = derived.lineSpeedMPerMin / (Math.PI * diameterM);
+  if (validPositive(derived.outputSpeed) && !validPositive(derived.motorSpeed)) derived.motorSpeed = derived.outputSpeed * ratio;
 
   const cards = [
     createOutputCard('收线速度', derived.lineSpeedMPerMin, 'm/min', 0),
@@ -481,14 +459,15 @@ function clearAllInputs() {
 }
 
 async function copySummary() {
-  const summary = [
-    `功率模块：${els['motor-power-output'].innerText.trim()}`,
-    `减速模块：${els['gear-output'].innerText.trim()}`,
-    `收线系统：${els['spool-output'].innerText.replace(/\s+/g, ' ').trim()}`
-  ].join('\n');
+  const visibleSections = [...document.querySelectorAll('[data-module-section]:not(.is-hidden)')];
+  const summary = visibleSections.map((section) => {
+    const title = section.querySelector('h2')?.innerText || '模块';
+    const content = section.innerText.replace(/\s+/g, ' ').trim();
+    return `${title}：${content}`;
+  }).join('\n');
 
   try {
-    await navigator.clipboard.writeText(summary);
+    await navigator.clipboard.writeText(summary || '当前没有显示模块。');
     alert('结果摘要已复制到剪贴板。');
   } catch (error) {
     alert(`复制失败，请手动复制：\n${summary}`);

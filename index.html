@@ -11,7 +11,7 @@
     <div class="hero-copy">
       <p class="eyebrow">Hardware PM Toolkit</p>
       <h1>硬件产品常用计算与单位换算工具</h1>
-      <p class="hero-desc">聚焦硬件方案评估中的高频工程估算：电机、显示屏、功耗与核心收线系统联动计算。</p>
+      <p class="hero-desc">聚焦硬件方案评估中的高频工程估算。先选择要使用的模块，再展开对应的计算面板。</p>
     </div>
     <div class="hero-actions">
       <button id="copy-summary" class="secondary-btn">复制当前结果摘要</button>
@@ -19,19 +19,11 @@
     </div>
   </header>
 
-  <nav class="top-nav">
-    <a href="#motor-drive">电机与传动</a>
-    <a href="#display-panel">显示屏计算</a>
-    <a href="#power-battery">功耗/电池</a>
-    <a href="#unit-converter">单位换算</a>
-    <a href="#spooling-core">收线系统联动</a>
-  </nav>
-
   <main class="app-grid">
     <section class="module-card intro-strip">
       <div>
         <h2>使用说明</h2>
-        <p>所有计算均在浏览器本地完成，离线可用。内部统一采用 m / N / N·m；涉及直径和力臂时会自动进行 mm → m 转换。</p>
+        <p>所有计算均在浏览器本地完成，离线可用。内部统一采用 m / N / N·m；涉及直径与力臂时自动进行 mm → m 转换。</p>
       </div>
       <div class="mini-tags">
         <span>纯前端</span>
@@ -41,7 +33,47 @@
       </div>
     </section>
 
-    <section id="motor-drive" class="module-card">
+    <section class="module-card selector-card">
+      <div class="module-header selector-header">
+        <div>
+          <h2>模块选择</h2>
+          <p>点击下方模块卡片，按需显示或隐藏对应面板。</p>
+        </div>
+        <div class="selector-actions">
+          <button id="show-all-modules" class="secondary-btn">显示全部模块</button>
+          <button id="hide-all-modules" class="secondary-btn">隐藏全部模块</button>
+        </div>
+      </div>
+      <div class="module-selector-grid">
+        <button class="module-toggle is-active module-theme-a" data-target="motor-drive">
+          <span class="module-code">模块 A</span>
+          <strong>电机与传动</strong>
+          <small>功率、减速比、T-N 曲线</small>
+        </button>
+        <button class="module-toggle" data-target="display-panel">
+          <span class="module-code">模块 B</span>
+          <strong>显示屏计算</strong>
+          <small>PPI、长宽比、总像素</small>
+        </button>
+        <button class="module-toggle" data-target="power-battery">
+          <span class="module-code">模块 C</span>
+          <strong>功耗 / 电池</strong>
+          <small>功率、续航、Wh 换算</small>
+        </button>
+        <button class="module-toggle" data-target="unit-converter">
+          <span class="module-code">模块 D</span>
+          <strong>单位换算</strong>
+          <small>常见工程单位快速换算</small>
+        </button>
+        <button class="module-toggle is-active module-theme-e" data-target="spooling-core">
+          <span class="module-code">模块 E</span>
+          <strong>收线系统联动</strong>
+          <small>速度 ↔ 拉力 ↔ 电机参数</small>
+        </button>
+      </div>
+    </section>
+
+    <section id="motor-drive" data-module-section class="module-card module-theme-a">
       <div class="module-header">
         <div>
           <h2>模块 A：电机与传动计算</h2>
@@ -108,10 +140,10 @@
       </article>
     </section>
 
-    <section id="display-panel" class="module-card">
+    <section id="display-panel" data-module-section class="module-card module-theme-b is-hidden">
       <div class="module-header">
         <div>
-          <h2>模块 D：显示屏计算</h2>
+          <h2>模块 B：显示屏计算</h2>
           <p>快速估算 PPI、长宽比与总像素。</p>
         </div>
       </div>
@@ -160,10 +192,10 @@
       </div>
     </section>
 
-    <section id="power-battery" class="module-card">
+    <section id="power-battery" data-module-section class="module-card module-theme-c is-hidden">
       <div class="module-header">
         <div>
-          <h2>模块 E：功耗 / 电池</h2>
+          <h2>模块 C：功耗 / 电池</h2>
           <p>用于功率、电池能量与续航粗估。</p>
         </div>
       </div>
@@ -212,10 +244,10 @@
       </div>
     </section>
 
-    <section id="unit-converter" class="module-card">
+    <section id="unit-converter" data-module-section class="module-card module-theme-d is-hidden">
       <div class="module-header">
         <div>
-          <h2>模块 F：单位换算</h2>
+          <h2>模块 D：单位换算</h2>
           <p>常用工程单位快速换算，适合方案评审和参数整理。</p>
         </div>
       </div>
@@ -238,10 +270,10 @@
       </article>
     </section>
 
-    <section id="spooling-core" class="module-card core-card">
+    <section id="spooling-core" data-module-section class="module-card module-theme-e">
       <div class="module-header">
         <div>
-          <h2>模块 G：收线系统联动计算（核心）</h2>
+          <h2>模块 E：收线系统联动计算（核心）</h2>
           <p>实现速度 ↔ 拉力 ↔ 电机参数联动；收线速度统一显示为 m/min。</p>
         </div>
         <span class="badge accent">核心模块</span>
