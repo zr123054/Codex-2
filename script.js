@@ -1,5 +1,6 @@
 const G = 9.81;
 const THEME_KEY = 'hardware-tool-theme-v1';
+let draggedModuleButton = null;
 
 const unitConfig = {
   length: { label: '长度', units: { mm: 0.001, cm: 0.01, m: 1, inch: 0.0254 } },
@@ -32,6 +33,7 @@ function bindElements() {
 
 function bindEvents() {
   document.querySelectorAll('input').forEach((input) => input.addEventListener('input', handleInput));
+  document.querySelectorAll('textarea').forEach((textarea) => textarea.addEventListener('input', handleInput));
   document.querySelectorAll('select').forEach((select) => select.addEventListener('change', handleInput));
   document.querySelectorAll('input[name="spool-mode"]').forEach((radio) => radio.addEventListener('change', () => {
     initSpoolMode();
@@ -39,6 +41,10 @@ function bindEvents() {
   }));
   document.querySelectorAll('.module-toggle').forEach((button) => {
     button.addEventListener('click', () => toggleModule(button.dataset.target));
+    button.addEventListener('dragstart', handleModuleDragStart);
+    button.addEventListener('dragover', handleModuleDragOver);
+    button.addEventListener('drop', handleModuleDrop);
+    button.addEventListener('dragend', handleModuleDragEnd);
   });
 
   els['copy-summary'].addEventListener('click', copySummary);
@@ -101,6 +107,7 @@ function refreshAll() {
   computeMotorPower();
   computeGearOutput();
   computeTnCurve();
+  computeLinearFitCurve();
   computeDisplay();
   computePower();
   computeRuntime();
@@ -145,18 +152,130 @@ function computeMotorPower() {
     return;
   }
   if (!Number.isFinite(power) && validPositive(torque) && validPositive(speed)) {
-    setHtml('motor-power-output', `<strong>功率：</strong>${format(torque * 2 * Math.PI * speed / 60)} W`);
+    const computed = torque * 2 * Math.PI * speed / 60;
+    els['motor-power'].value = format(computed);
+    setHtml('motor-power-output', `<strong>功率：</strong>${format(computed)} W（已回填输入框）`);
     return;
   }
   if (!Number.isFinite(speed) && validPositive(torque) && validPositive(power)) {
-    setHtml('motor-power-output', `<strong>转速：</strong>${format(power * 60 / (torque * 2 * Math.PI))} rpm`);
+    const computed = power * 60 / (torque * 2 * Math.PI);
+    els['motor-speed'].value = format(computed);
+    setHtml('motor-power-output', `<strong>转速：</strong>${format(computed)} rpm（已回填输入框）`);
     return;
   }
   if (!Number.isFinite(torque) && validPositive(speed) && validPositive(power)) {
-    setHtml('motor-power-output', `<strong>扭矩：</strong>${format(power * 60 / (speed * 2 * Math.PI))} N·m`);
+    const computed = power * 60 / (speed * 2 * Math.PI);
+    els['motor-torque'].value = format(computed);
+    setHtml('motor-power-output', `<strong>扭矩：</strong>${format(computed)} N·m（已回填输入框）`);
     return;
   }
   setHtml('motor-power-output', '<span class="error">参数不能为 0，且必须为有效数字。</span>');
+}
+
+function computeLinearFitCurve() {
+  const pointsText = els['fit-points'].value.trim();
+  const queryX = parseNum('fit-query-x');
+  const points = pointsText
+    ? pointsText.split(/\n+/).map((line) => line.trim()).filter(Boolean)
+      .map((line) => line.split(',').map((item) => Number.parseFloat(item.trim())))
+      .filter((pair) => pair.length === 2 && pair.every((v) => Number.isFinite(v)))
+    : [];
+
+  drawFitCurve(points, queryX);
+
+  if (points.length < 2) {
+    setHtml('fit-output', '<span class="hint">请至少输入 2 个有效坐标点用于线性拟合。</span>');
+    return;
+  }
+
+  const n = points.length;
+  const sx = points.reduce((sum, [x]) => sum + x, 0);
+  const sy = points.reduce((sum, [, y]) => sum + y, 0);
+  const sxy = points.reduce((sum, [x, y]) => sum + x * y, 0);
+  const sx2 = points.reduce((sum, [x]) => sum + x * x, 0);
+  const denominator = n * sx2 - sx * sx;
+  if (denominator === 0) {
+    setHtml('fit-output', '<span class="error">x 坐标不可全部相同，无法拟合线性方程。</span>');
+    return;
+  }
+  const k = (n * sxy - sx * sy) / denominator;
+  const b = (sy - k * sx) / n;
+
+  const pieces = [`拟合方程：y = ${format(k, 4)}x + ${format(b, 4)}`];
+  if (Number.isFinite(queryX)) {
+    pieces.push(`当 x = ${format(queryX)} 时，y ≈ ${format(k * queryX + b)}`);
+  }
+  setHtml('fit-output', `<ul class="metric-list">${pieces.map((text) => `<li>${text}</li>`).join('')}</ul>`);
+}
+
+function drawFitCurve(points, queryX) {
+  const canvas = els['fit-canvas'];
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#f8fbff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const pad = 40;
+  ctx.strokeStyle = '#b9c8db';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad, canvas.height - pad);
+  ctx.lineTo(canvas.width - pad, canvas.height - pad);
+  ctx.moveTo(pad, canvas.height - pad);
+  ctx.lineTo(pad, pad);
+  ctx.stroke();
+
+  if (points.length < 2) {
+    ctx.fillStyle = '#93a1ba';
+    ctx.fillText('输入坐标点后显示拟合曲线', pad + 24, canvas.height / 2);
+    return;
+  }
+
+  const xs = points.map(([x]) => x);
+  const ys = points.map(([, y]) => y);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  const spanX = maxX - minX || 1;
+  const spanY = maxY - minY || 1;
+  const mapX = (x) => pad + (x - minX) / spanX * (canvas.width - pad * 2);
+  const mapY = (y) => canvas.height - pad - (y - minY) / spanY * (canvas.height - pad * 2);
+
+  // draw points
+  ctx.fillStyle = '#f97316';
+  points.forEach(([x, y]) => {
+    ctx.beginPath();
+    ctx.arc(mapX(x), mapY(y), 4, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // regression line
+  const n = points.length;
+  const sx = points.reduce((sum, [x]) => sum + x, 0);
+  const sy = points.reduce((sum, [, y]) => sum + y, 0);
+  const sxy = points.reduce((sum, [x, y]) => sum + x * y, 0);
+  const sx2 = points.reduce((sum, [x]) => sum + x * x, 0);
+  const denominator = n * sx2 - sx * sx;
+  if (denominator !== 0) {
+    const k = (n * sxy - sx * sy) / denominator;
+    const b = (sy - k * sx) / n;
+    const y1 = k * minX + b;
+    const y2 = k * maxX + b;
+    ctx.strokeStyle = '#5b67ff';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(mapX(minX), mapY(y1));
+    ctx.lineTo(mapX(maxX), mapY(y2));
+    ctx.stroke();
+    if (Number.isFinite(queryX)) {
+      const qy = k * queryX + b;
+      const clampedX = Math.min(maxX, Math.max(minX, queryX));
+      ctx.fillStyle = '#0ea5a1';
+      ctx.beginPath();
+      ctx.arc(mapX(clampedX), mapY(qy), 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
 }
 
 function computeGearOutput() {
@@ -312,11 +431,15 @@ function computeBattery() {
   const voltage = parseNum('mah-voltage');
   const wh = parseNum('wh-value');
   if (validPositive(mah) && validPositive(voltage) && !Number.isFinite(wh)) {
-    setHtml('battery-output', `<strong>能量：</strong>${format(mah * voltage / 1000)} Wh`);
+    const computed = mah * voltage / 1000;
+    els['wh-value'].value = format(computed);
+    setHtml('battery-output', `<strong>能量：</strong>${format(computed)} Wh（已回填输入框）`);
     return;
   }
   if (validPositive(wh) && validPositive(voltage) && !Number.isFinite(mah)) {
-    setHtml('battery-output', `<strong>容量：</strong>${format(wh * 1000 / voltage)} mAh`);
+    const computed = wh * 1000 / voltage;
+    els['mah-value'].value = format(computed);
+    setHtml('battery-output', `<strong>容量：</strong>${format(computed)} mAh（已回填输入框）`);
     return;
   }
   if (validPositive(mah) && validPositive(voltage) && validPositive(wh)) {
@@ -492,4 +615,44 @@ async function copySummary() {
 
 function gcd(a, b) {
   return b === 0 ? a : gcd(b, a % b);
+}
+
+function handleModuleDragStart(event) {
+  draggedModuleButton = event.currentTarget;
+  event.currentTarget.classList.add('dragging');
+}
+
+function handleModuleDragOver(event) {
+  event.preventDefault();
+}
+
+function handleModuleDrop(event) {
+  event.preventDefault();
+  const target = event.currentTarget;
+  if (!draggedModuleButton || draggedModuleButton === target) return;
+  const grid = target.parentElement;
+  const all = [...grid.children];
+  const dragIndex = all.indexOf(draggedModuleButton);
+  const targetIndex = all.indexOf(target);
+  if (dragIndex < targetIndex) {
+    target.after(draggedModuleButton);
+  } else {
+    target.before(draggedModuleButton);
+  }
+  applyModuleOrderToSections();
+}
+
+function handleModuleDragEnd(event) {
+  event.currentTarget.classList.remove('dragging');
+  draggedModuleButton = null;
+}
+
+function applyModuleOrderToSections() {
+  const container = els['module-sections'];
+  const frag = document.createDocumentFragment();
+  document.querySelectorAll('.module-toggle').forEach((button) => {
+    const section = document.getElementById(button.dataset.target);
+    if (section) frag.appendChild(section);
+  });
+  container.appendChild(frag);
 }

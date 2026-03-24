@@ -48,27 +48,27 @@
         
       </div>
       <div class="module-selector-grid">
-        <button class="module-toggle" data-target="motor-drive">
+        <button class="module-toggle" data-target="motor-drive" draggable="true">
           <span class="module-code">模块 A</span>
           <strong>电机与传动</strong>
           <small>功率、减速比、T-N 曲线</small>
         </button>
-        <button class="module-toggle" data-target="display-panel">
+        <button class="module-toggle" data-target="display-panel" draggable="true">
           <span class="module-code">模块 B</span>
           <strong>显示屏计算</strong>
           <small>PPI、长宽比、总像素</small>
         </button>
-        <button class="module-toggle" data-target="power-battery">
+        <button class="module-toggle" data-target="power-battery" draggable="true">
           <span class="module-code">模块 C</span>
           <strong>功耗 / 电池</strong>
           <small>功率、续航、Wh 换算</small>
         </button>
-        <button class="module-toggle" data-target="unit-converter">
+        <button class="module-toggle" data-target="unit-converter" draggable="true">
           <span class="module-code">模块 D</span>
           <strong>单位换算</strong>
           <small>常见工程单位快速换算</small>
         </button>
-        <button class="module-toggle" data-target="spooling-core">
+        <button class="module-toggle" data-target="spooling-core" draggable="true">
           <span class="module-code">模块 E</span>
           <strong>收线系统联动</strong>
           <small>速度 ↔ 拉力 ↔ 电机参数</small>
@@ -89,7 +89,7 @@
         <div class="sub-grid two-col">
           <article class="panel spotlight-panel">
             <h3>功率三选二</h3>
-            <p class="hint">公式：P = T × 2π × n / 60</p>
+            <p class="hint">公式：P = T × 2π × n / 60（留空项会自动回填到对应输入框）</p>
             <div class="field-grid">
               <label>扭矩 T (N·m)
                 <input id="motor-torque" type="number" step="any" min="0" placeholder="例如 0.45" />
@@ -141,6 +141,21 @@
           </div>
           <canvas id="tn-canvas" width="700" height="280" aria-label="T-N 曲线图"></canvas>
           <div id="tn-output" class="result-box"></div>
+        </article>
+
+        <article class="panel fit-panel">
+          <h3>线性拟合曲线（自定义坐标）</h3>
+          <p class="hint">每行输入一个点，格式为 x,y（例如 0,1.2）。至少 2 个点后自动线性拟合。</p>
+          <div class="field-grid">
+            <label>坐标点列表
+              <textarea id="fit-points" rows="5" placeholder="0,1.2&#10;1000,1.0&#10;2000,0.7"></textarea>
+            </label>
+            <label>查询 x
+              <input id="fit-query-x" type="number" step="any" placeholder="例如 1500" />
+            </label>
+          </div>
+          <canvas id="fit-canvas" width="700" height="280" aria-label="线性拟合曲线图"></canvas>
+          <div id="fit-output" class="result-box"></div>
         </article>
       </section>
 

@@ -41,7 +41,7 @@ body {
     linear-gradient(180deg, #fbfbff 0%, var(--bg) 100%);
 }
 
-button, input, select { font: inherit; }
+button, input, select, textarea { font: inherit; }
 h1, h2, h3, h4, p { margin-top: 0; }
 
 .hero, .app-grid { max-width: 1440px; margin: 0 auto; }
@@ -105,6 +105,7 @@ h1 { margin-bottom: 10px; font-size: 36px; line-height: 1.16; }
   background: linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(246,248,255,0.94) 100%);
   transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
 }
+.module-toggle.dragging { opacity: .45; }
 .module-toggle:hover { transform: translateY(-2px); }
 .module-toggle strong, .module-toggle small, .module-toggle .module-code { display: block; }
 .module-toggle strong { margin: 8px 0 6px; font-size: 18px; color: var(--text); }
@@ -135,12 +136,13 @@ h1 { margin-bottom: 10px; font-size: 36px; line-height: 1.16; }
 .converter-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 
 label { display: grid; gap: 6px; font-size: 14px; color: var(--muted); writing-mode: horizontal-tb; }
-input, select {
+input, select, textarea {
   width: 100%; padding: 11px 12px; border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
   border-radius: 14px; background: rgba(255,255,255,0.96); color: var(--text);
   transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
 }
-input:focus, select:focus, button:focus {
+textarea { resize: vertical; min-height: 110px; }
+input:focus, select:focus, textarea:focus, button:focus {
   outline: none; border-color: color-mix(in srgb, var(--primary) 60%, transparent);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent);
 }
@@ -159,6 +161,11 @@ input:disabled { background: #eef2f7; color: #8ca0b8; }
 .note-box { background: linear-gradient(135deg, color-mix(in srgb, var(--cyan) 12%, transparent), color-mix(in srgb, var(--primary) 10%, transparent)); }
 
 .tn-panel canvas {
+  width: 100%; margin-top: 12px; border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(238,244,255,0.96) 100%);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+.fit-panel canvas {
   width: 100%; margin-top: 12px; border-radius: 16px;
   background: linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(238,244,255,0.96) 100%);
   border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
