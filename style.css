@@ -51,6 +51,15 @@ body {
     linear-gradient(180deg, color-mix(in srgb, var(--bg) 92%, white) 0%, var(--bg) 100%);
 }
 
+body.has-custom-bg {
+  background-image:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg) 86%, transparent) 0%, color-mix(in srgb, var(--bg) 90%, transparent) 100%),
+    var(--user-bg-image);
+  background-size: cover, cover;
+  background-position: center, center;
+  background-attachment: fixed, fixed;
+}
+
 button, input, select, textarea { font: inherit; }
 h1, h2, h3, h4, p { margin-top: 0; }
 
@@ -211,6 +220,12 @@ input:disabled { background: #eef2f7; color: #8ca0b8; }
 
 body.theme-dark {
   background: #212121;
+}
+
+body.theme-dark.has-custom-bg {
+  background-image:
+    linear-gradient(180deg, rgba(33, 33, 33, 0.88) 0%, rgba(33, 33, 33, 0.92) 100%),
+    var(--user-bg-image);
 }
 
 body.theme-dark .module-card,

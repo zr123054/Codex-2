@@ -1,5 +1,6 @@
 const G = 9.81;
 const THEME_KEY = 'hardware-tool-theme-v1';
+const BG_KEY = 'hardware-tool-bg-v1';
 let draggedModuleButton = null;
 
 const unitConfig = {
@@ -18,6 +19,7 @@ const els = {};
 document.addEventListener('DOMContentLoaded', () => {
   bindElements();
   initTheme();
+  initBackground();
   initModuleSelector();
   initDynamicInputs();
   initConverter();
@@ -46,12 +48,21 @@ function bindEvents() {
   els['copy-summary'].addEventListener('click', copySummary);
   els['clear-all'].addEventListener('click', clearAllInputs);
   els['theme-select'].addEventListener('change', applyThemeFromSelect);
+  els['bg-upload'].addEventListener('change', handleBackgroundUpload);
+  els['clear-bg'].addEventListener('click', clearBackgroundImage);
 }
 
 function initTheme() {
   const saved = localStorage.getItem(THEME_KEY) || 'default';
   els['theme-select'].value = saved;
   applyTheme(saved);
+}
+
+function initBackground() {
+  const savedBg = localStorage.getItem(BG_KEY);
+  if (savedBg) {
+    applyBackgroundImage(savedBg);
+  }
 }
 
 function applyThemeFromSelect() {
@@ -65,6 +76,33 @@ function applyTheme(name) {
   document.body.classList.add(`theme-${name}`);
 }
 
+function handleBackgroundUpload(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const dataUrl = typeof reader.result === 'string' ? reader.result : '';
+    if (!dataUrl) return;
+    applyBackgroundImage(dataUrl);
+    localStorage.setItem(BG_KEY, dataUrl);
+  };
+  reader.readAsDataURL(file);
+}
+
+function applyBackgroundImage(dataUrl) {
+  document.body.style.setProperty('--user-bg-image', `url("${dataUrl}")`);
+  document.body.classList.add('has-custom-bg');
+}
+
+function clearBackgroundImage() {
+  document.body.style.removeProperty('--user-bg-image');
+  document.body.classList.remove('has-custom-bg');
+  localStorage.removeItem(BG_KEY);
+  if (els['bg-upload']) {
+    els['bg-upload'].value = '';
+  }
+}
+
 function initModuleSelector() {
   syncModuleVisibility();
 }
@@ -74,6 +112,7 @@ function toggleModule(targetId) {
   document.querySelectorAll('.module-toggle').forEach((item) => item.classList.remove('is-active'));
   button.classList.add('is-active');
   syncModuleVisibility(targetId, true);
+  scrollToModule(targetId);
 }
 
 function syncModuleVisibility(activatedId = null, isActivated = false) {
@@ -92,8 +131,17 @@ function syncModuleVisibility(activatedId = null, isActivated = false) {
   }
 }
 
+function scrollToModule(targetId) {
+  const section = document.getElementById(targetId);
+  if (!section) return;
+  requestAnimationFrame(() => {
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
 function handleInput(event) {
   const target = event.target;
+  if (!(target instanceof Element)) return;
   sanitizeNumericInput(target);
   if (target instanceof HTMLInputElement && target.name === 'spool-mode') {
     initSpoolMode();
