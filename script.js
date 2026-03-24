@@ -6,15 +6,20 @@ let draggedModuleButton = null;
 
 const themeColorPresets = {
   blue: { primary: '#3b82f6', strong: '#2563eb' },
+  indigo: { primary: '#6366f1', strong: '#4f46e5' },
   violet: { primary: '#8b5cf6', strong: '#7c3aed' },
-  orange: { primary: '#f59e0b', strong: '#d97706' }
+  teal: { primary: '#14b8a6', strong: '#0f766e' },
+  orange: { primary: '#f59e0b', strong: '#d97706' },
+  rose: { primary: '#f43f5e', strong: '#e11d48' }
 };
 
 const accentColorPresets = {
   green: { accent: '#19c37d', strong: '#0fa968' },
   cyan: { accent: '#06b6d4', strong: '#0891b2' },
   purple: { accent: '#a855f7', strong: '#9333ea' },
-  orange: { accent: '#f97316', strong: '#ea580c' }
+  orange: { accent: '#f97316', strong: '#ea580c' },
+  blue: { accent: '#3b82f6', strong: '#2563eb' },
+  red: { accent: '#ef4444', strong: '#dc2626' }
 };
 
 const unitConfig = {
@@ -127,6 +132,10 @@ function applyColorScheme() {
 }
 
 function initModuleSelector() {
+  const defaultButton = document.querySelector('.module-toggle[data-target="motor-drive"]');
+  if (defaultButton) {
+    defaultButton.classList.add('is-active');
+  }
   syncModuleVisibility();
 }
 
