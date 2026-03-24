@@ -99,6 +99,7 @@
           <article class="panel spotlight-panel">
             <h3>功率三选二</h3>
             <p class="hint">公式：P = T × 2π × n / 60（留空项会自动回填到对应输入框）</p>
+            <div class="highlight-box">高亮提示：此区域适合快速做“电机功率/扭矩/转速”三选二反算。</div>
             <div class="field-grid">
               <label>扭矩 T (N·m)
                 <input id="motor-torque" type="number" step="any" min="0" placeholder="例如 0.45" />
@@ -163,13 +164,15 @@
                   <button id="add-fit-point" type="button" class="secondary-btn inline-btn">新增</button>
                 </div>
                 <div id="fit-points-list" class="dynamic-list">
-                  <div class="dynamic-row two-input">
+                  <div class="dynamic-row two-input with-action">
                     <input class="fit-x" type="number" step="any" min="0" placeholder="x 例如 0" />
                     <input class="fit-y" type="number" step="any" min="0" placeholder="y 例如 1.2" />
+                    <button type="button" class="secondary-btn remove-row">删除</button>
                   </div>
-                  <div class="dynamic-row two-input">
+                  <div class="dynamic-row two-input with-action">
                     <input class="fit-x" type="number" step="any" min="0" placeholder="x 例如 1000" />
                     <input class="fit-y" type="number" step="any" min="0" placeholder="y 例如 1.0" />
+                    <button type="button" class="secondary-btn remove-row">删除</button>
                   </div>
                 </div>
               </div>
@@ -325,19 +328,22 @@
           <article class="panel">
             <h3>多级平行轴减速比</h3>
             <p class="hint">每级减速比 = 从动齿数 / 主动齿数；总减速比 = 各级乘积。</p>
+            <div class="highlight-box">高亮提示：适合按传动级拆分结构，逐级验证齿数组合是否合理。</div>
             <div class="dynamic-group">
               <div class="dynamic-head">
                 <label>每级齿数（主动,从动）</label>
                 <button id="add-parallel-stage" type="button" class="secondary-btn inline-btn">新增</button>
               </div>
               <div id="parallel-stages-list" class="dynamic-list">
-                <div class="dynamic-row two-input">
+                <div class="dynamic-row two-input with-action">
                   <input class="parallel-driver" type="number" min="1" step="1" placeholder="主动齿数 例如 12" />
                   <input class="parallel-driven" type="number" min="1" step="1" placeholder="从动齿数 例如 60" />
+                  <button type="button" class="secondary-btn remove-row">删除</button>
                 </div>
-                <div class="dynamic-row two-input">
+                <div class="dynamic-row two-input with-action">
                   <input class="parallel-driver" type="number" min="1" step="1" placeholder="主动齿数 例如 15" />
                   <input class="parallel-driven" type="number" min="1" step="1" placeholder="从动齿数 例如 45" />
+                  <button type="button" class="secondary-btn remove-row">删除</button>
                 </div>
               </div>
             </div>
@@ -375,11 +381,13 @@
               <button id="add-stack-ratio" type="button" class="secondary-btn inline-btn">新增</button>
             </div>
             <div id="stack-ratios-list" class="dynamic-list">
-              <div class="dynamic-row">
+              <div class="dynamic-row with-action">
                 <input class="stack-ratio" type="number" min="0" step="any" placeholder="例如 5" />
+                <button type="button" class="secondary-btn remove-row">删除</button>
               </div>
-              <div class="dynamic-row">
+              <div class="dynamic-row with-action">
                 <input class="stack-ratio" type="number" min="0" step="any" placeholder="例如 4.2" />
+                <button type="button" class="secondary-btn remove-row">删除</button>
               </div>
             </div>
           </div>
@@ -398,6 +406,7 @@
 
         <article class="panel core-input-panel">
           <h3>输入参数</h3>
+          <div class="highlight-box">高亮提示：先输入固定参数（减速比/卷筒直径/效率），再选择一个主输入进行联动。</div>
           <div class="field-grid">
             <label>减速比 i
               <input id="spool-ratio" type="number" step="any" min="0" placeholder="例如 25" />

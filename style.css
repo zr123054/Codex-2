@@ -163,7 +163,19 @@ h1 { margin-bottom: 10px; font-size: 36px; line-height: 1.16; }
 .dynamic-list { display: grid; gap: 8px; }
 .dynamic-row { display: grid; gap: 8px; }
 .dynamic-row.two-input { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.dynamic-row.with-action { grid-template-columns: 1fr auto; align-items: center; }
+.dynamic-row.two-input.with-action { grid-template-columns: 1fr 1fr auto; }
 .inline-btn { padding: 7px 12px; border-radius: 10px; }
+.remove-row { padding: 7px 11px; border-radius: 10px; white-space: nowrap; }
+.highlight-box {
+  margin: 10px 0 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--border));
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  color: var(--text);
+  font-size: 13px;
+}
 
 label { display: grid; gap: 6px; font-size: 14px; color: var(--muted); writing-mode: horizontal-tb; }
 input, select, textarea {
@@ -272,6 +284,11 @@ body.theme-dark .secondary-btn {
   color: #ececf1;
 }
 
+body.theme-dark .highlight-box {
+  background: #1f342d;
+  border-color: #2f5b4f;
+}
+
 body.theme-dark .primary-btn {
   background: #19c37d;
   border-color: #19c37d;
@@ -291,4 +308,6 @@ body.theme-dark .primary-btn {
   h1 { font-size: 30px; }
   .radio-group label { min-width: auto; width: 100%; }
   .dynamic-row.two-input { grid-template-columns: 1fr; }
+  .dynamic-row.with-action,
+  .dynamic-row.two-input.with-action { grid-template-columns: 1fr; }
 }

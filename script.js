@@ -37,6 +37,7 @@ function bindElements() {
 function bindEvents() {
   document.addEventListener('input', handleInput);
   document.addEventListener('change', handleInput);
+  document.addEventListener('click', handleDynamicActions);
   document.querySelectorAll('.module-toggle').forEach((button) => {
     button.addEventListener('click', () => toggleModule(button.dataset.target));
     button.addEventListener('dragstart', handleModuleDragStart);
@@ -90,7 +91,7 @@ function handleBackgroundUpload(event) {
 }
 
 function applyBackgroundImage(dataUrl) {
-  document.body.style.setProperty('--user-bg-image', `url("${dataUrl}")`);
+  document.body.style.setProperty('--user-bg-image', `url(${dataUrl})`);
   document.body.classList.add('has-custom-bg');
 }
 
@@ -151,6 +152,16 @@ function handleInput(event) {
   if (target.closest('#spooling-core')) {
     initSpoolMode();
   }
+  refreshAll();
+}
+
+function handleDynamicActions(event) {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) return;
+  if (!target.classList.contains('remove-row')) return;
+  const row = target.closest('.dynamic-row');
+  if (!row) return;
+  row.remove();
   refreshAll();
 }
 
@@ -800,18 +811,22 @@ function initDynamicInputs() {
 
 function appendPairRow(containerId, classA, classB, placeholderA, placeholderB, min = 0) {
   const row = document.createElement('div');
-  row.className = 'dynamic-row two-input';
+  row.className = 'dynamic-row two-input with-action';
   row.innerHTML = `
     <input class="${classA}" type="number" step="any" min="${min}" placeholder="${placeholderA}" />
     <input class="${classB}" type="number" step="any" min="${min}" placeholder="${placeholderB}" />
+    <button type="button" class="secondary-btn remove-row">删除</button>
   `;
   els[containerId].appendChild(row);
 }
 
 function appendSingleRow(containerId, inputClass, placeholder, min = 0) {
   const row = document.createElement('div');
-  row.className = 'dynamic-row';
-  row.innerHTML = `<input class="${inputClass}" type="number" step="any" min="${min}" placeholder="${placeholder}" />`;
+  row.className = 'dynamic-row with-action';
+  row.innerHTML = `
+    <input class="${inputClass}" type="number" step="any" min="${min}" placeholder="${placeholder}" />
+    <button type="button" class="secondary-btn remove-row">删除</button>
+  `;
   els[containerId].appendChild(row);
 }
 
