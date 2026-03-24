@@ -41,8 +41,6 @@ function bindEvents() {
     button.addEventListener('click', () => toggleModule(button.dataset.target));
   });
 
-  els['show-all-modules'].addEventListener('click', showAllModules);
-  els['hide-all-modules'].addEventListener('click', hideAllModules);
   els['copy-summary'].addEventListener('click', copySummary);
   els['clear-all'].addEventListener('click', clearAllInputs);
   els['theme-select'].addEventListener('change', applyThemeFromSelect);
@@ -61,7 +59,7 @@ function applyThemeFromSelect() {
 }
 
 function applyTheme(name) {
-  document.body.classList.remove('theme-default', 'theme-vivid', 'theme-dark');
+  document.body.classList.remove('theme-default', 'theme-dark');
   document.body.classList.add(`theme-${name}`);
 }
 
@@ -71,18 +69,9 @@ function initModuleSelector() {
 
 function toggleModule(targetId) {
   const button = document.querySelector(`.module-toggle[data-target="${targetId}"]`);
-  button.classList.toggle('is-active');
-  syncModuleVisibility(targetId, button.classList.contains('is-active'));
-}
-
-function showAllModules() {
-  document.querySelectorAll('.module-toggle').forEach((button) => button.classList.add('is-active'));
-  syncModuleVisibility();
-}
-
-function hideAllModules() {
-  document.querySelectorAll('.module-toggle').forEach((button) => button.classList.remove('is-active'));
-  syncModuleVisibility();
+  document.querySelectorAll('.module-toggle').forEach((item) => item.classList.remove('is-active'));
+  button.classList.add('is-active');
+  syncModuleVisibility(targetId, true);
 }
 
 function syncModuleVisibility(activatedId = null, isActivated = false) {
@@ -464,7 +453,6 @@ function computeSpool() {
   const cards = [
     createOutputCard('收线速度', derived.lineSpeedMPerMin, 'm/min'),
     createOutputCard('拉力', derived.forceN ? derived.forceN / G : null, 'kg'),
-    createOutputCard('拉力', derived.forceN, 'N'),
     createOutputCard('输出轴转速', derived.outputSpeed, 'rpm'),
     createOutputCard('电机转速', derived.motorSpeed, 'rpm'),
     createOutputCard('输出轴扭矩', derived.outputTorque, 'N·m'),

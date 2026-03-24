@@ -15,19 +15,6 @@
   --shadow: 0 20px 50px rgba(77, 91, 158, 0.14);
 }
 
-body.theme-vivid {
-  --bg: #fff6fb;
-  --surface: rgba(255, 255, 255, 0.94);
-  --surface-soft: #fff8fe;
-  --border: rgba(199, 98, 171, 0.24);
-  --text: #3f2248;
-  --muted: #7d5685;
-  --primary: #d946ef;
-  --primary-strong: #b21ec9;
-  --accent: #f97316;
-  --shadow: 0 22px 54px rgba(195, 56, 145, 0.16);
-}
-
 body.theme-dark {
   --bg: #0f1628;
   --surface: rgba(22, 31, 52, 0.95);
@@ -96,7 +83,7 @@ h1 { margin-bottom: 10px; font-size: 36px; line-height: 1.16; }
   background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 10%, transparent) 0%, rgba(255,255,255,0.92) 45%, color-mix(in srgb, var(--accent) 12%, transparent) 100%);
 }
 
-.mini-tags, .selector-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.mini-tags { display: flex; flex-wrap: wrap; gap: 10px; }
 .mini-tags span, .badge, .module-code, .radio-group label { border-radius: 999px; }
 .mini-tags span, .badge {
   display: inline-flex; align-items: center; justify-content: center;
