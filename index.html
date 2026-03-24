@@ -20,10 +20,21 @@
           <option value="dark">ChatGPT 深色</option>
         </select>
       </label>
-      <label class="theme-select-label">页面背景图
-        <input id="bg-upload" type="file" accept="image/*" />
+      <label class="theme-select-label">主题色（日间）
+        <select id="theme-color-select">
+          <option value="blue">商务蓝</option>
+          <option value="violet">紫晶</option>
+          <option value="orange">琥珀橙</option>
+        </select>
       </label>
-      <button id="clear-bg" class="secondary-btn">清除背景图</button>
+      <label class="theme-select-label">点缀色
+        <select id="accent-color-select">
+          <option value="green">绿色</option>
+          <option value="cyan">青色</option>
+          <option value="purple">紫色</option>
+          <option value="orange">橙色</option>
+        </select>
+      </label>
       <button id="copy-summary" class="secondary-btn">复制当前结果摘要</button>
       <button id="clear-all" class="primary-btn">清空全部输入</button>
     </div>

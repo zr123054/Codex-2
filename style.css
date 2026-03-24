@@ -39,7 +39,6 @@ body.theme-dark {
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
 body {
   margin: 0;
   font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -49,15 +48,6 @@ body {
     radial-gradient(circle at top left, color-mix(in srgb, var(--primary) 10%, transparent), transparent 30%),
     radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 8%, transparent), transparent 26%),
     linear-gradient(180deg, color-mix(in srgb, var(--bg) 92%, white) 0%, var(--bg) 100%);
-}
-
-body.has-custom-bg {
-  background-image:
-    linear-gradient(180deg, color-mix(in srgb, var(--bg) 86%, transparent) 0%, color-mix(in srgb, var(--bg) 90%, transparent) 100%),
-    var(--user-bg-image);
-  background-size: cover, cover;
-  background-position: center, center;
-  background-attachment: fixed, fixed;
 }
 
 button, input, select, textarea { font: inherit; }
@@ -172,15 +162,27 @@ h1 { margin-bottom: 10px; font-size: 36px; line-height: 1.16; }
 .dynamic-row.two-input { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .dynamic-row.with-action { grid-template-columns: 1fr auto; align-items: center; }
 .dynamic-row.two-input.with-action { grid-template-columns: 1fr 1fr auto; }
-.inline-btn { padding: 7px 12px; border-radius: 10px; }
-.remove-row { padding: 7px 11px; border-radius: 10px; white-space: nowrap; }
+.inline-btn {
+  padding: 4px 9px;
+  border-radius: 9px;
+  font-size: 12px;
+  min-height: 28px;
+}
+.remove-row {
+  padding: 4px 9px;
+  border-radius: 9px;
+  white-space: nowrap;
+  font-size: 12px;
+  min-height: 28px;
+}
 .highlight-box {
   margin: 10px 0 12px;
   padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--border));
-  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
-  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  color: color-mix(in srgb, var(--accent) 78%, var(--text));
+  font-weight: 600;
   font-size: 13px;
 }
 
@@ -209,7 +211,15 @@ input:disabled { background: #eef2f7; color: #8ca0b8; }
 .result-box, .note-box { margin-top: 14px; padding: 14px 16px; }
 .result-box { background: var(--surface-soft); }
 .result-box:empty::before { content: "输入有效参数后，此处显示计算结果。"; color: var(--muted); }
-.note-box, .hint, .formula-list { color: var(--muted); }
+.note-box, .formula-list { color: var(--muted); }
+.hint {
+  color: var(--accent);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-left: 3px solid var(--accent);
+  padding: 6px 10px;
+  border-radius: 8px;
+}
 .note-box { background: linear-gradient(135deg, color-mix(in srgb, var(--cyan) 12%, transparent), color-mix(in srgb, var(--primary) 10%, transparent)); }
 
 .tn-panel canvas {
@@ -242,12 +252,6 @@ input:disabled { background: #eef2f7; color: #8ca0b8; }
 
 body.theme-dark {
   background: #212121;
-}
-
-body.theme-dark.has-custom-bg {
-  background-image:
-    linear-gradient(180deg, rgba(33, 33, 33, 0.88) 0%, rgba(33, 33, 33, 0.92) 100%),
-    var(--user-bg-image);
 }
 
 body.theme-dark .module-card,
@@ -295,8 +299,15 @@ body.theme-dark .secondary-btn {
 }
 
 body.theme-dark .highlight-box {
-  background: #1f342d;
-  border-color: #2f5b4f;
+  background: color-mix(in srgb, var(--accent) 18%, #242424);
+  border-color: color-mix(in srgb, var(--accent) 36%, #474747);
+  color: #f3f4f6;
+}
+
+body.theme-dark .hint {
+  color: #ecfeff;
+  background: color-mix(in srgb, var(--accent) 18%, #262626);
+  border-left-color: var(--accent);
 }
 
 body.theme-dark .primary-btn {

@@ -1,7 +1,21 @@
 const G = 9.81;
 const THEME_KEY = 'hardware-tool-theme-v1';
-const BG_KEY = 'hardware-tool-bg-v1';
+const THEME_COLOR_KEY = 'hardware-tool-theme-color-v1';
+const ACCENT_COLOR_KEY = 'hardware-tool-accent-color-v1';
 let draggedModuleButton = null;
+
+const themeColorPresets = {
+  blue: { primary: '#3b82f6', strong: '#2563eb' },
+  violet: { primary: '#8b5cf6', strong: '#7c3aed' },
+  orange: { primary: '#f59e0b', strong: '#d97706' }
+};
+
+const accentColorPresets = {
+  green: { accent: '#19c37d', strong: '#0fa968' },
+  cyan: { accent: '#06b6d4', strong: '#0891b2' },
+  purple: { accent: '#a855f7', strong: '#9333ea' },
+  orange: { accent: '#f97316', strong: '#ea580c' }
+};
 
 const unitConfig = {
   length: { label: '长度', units: { mm: 0.001, cm: 0.01, m: 1, inch: 0.0254 } },
@@ -19,7 +33,7 @@ const els = {};
 document.addEventListener('DOMContentLoaded', () => {
   bindElements();
   initTheme();
-  initBackground();
+  initColorScheme();
   initModuleSelector();
   initDynamicInputs();
   initConverter();
@@ -49,8 +63,8 @@ function bindEvents() {
   els['copy-summary'].addEventListener('click', copySummary);
   els['clear-all'].addEventListener('click', clearAllInputs);
   els['theme-select'].addEventListener('change', applyThemeFromSelect);
-  els['bg-upload'].addEventListener('change', handleBackgroundUpload);
-  els['clear-bg'].addEventListener('click', clearBackgroundImage);
+  els['theme-color-select'].addEventListener('change', applyThemeColorFromSelect);
+  els['accent-color-select'].addEventListener('change', applyAccentColorFromSelect);
 }
 
 function initTheme() {
@@ -59,11 +73,12 @@ function initTheme() {
   applyTheme(saved);
 }
 
-function initBackground() {
-  const savedBg = localStorage.getItem(BG_KEY);
-  if (savedBg) {
-    applyBackgroundImage(savedBg);
-  }
+function initColorScheme() {
+  const savedThemeColor = localStorage.getItem(THEME_COLOR_KEY) || 'blue';
+  const savedAccentColor = localStorage.getItem(ACCENT_COLOR_KEY) || 'green';
+  els['theme-color-select'].value = themeColorPresets[savedThemeColor] ? savedThemeColor : 'blue';
+  els['accent-color-select'].value = accentColorPresets[savedAccentColor] ? savedAccentColor : 'green';
+  applyColorScheme();
 }
 
 function applyThemeFromSelect() {
@@ -75,32 +90,39 @@ function applyThemeFromSelect() {
 function applyTheme(name) {
   document.body.classList.remove('theme-default', 'theme-dark');
   document.body.classList.add(`theme-${name}`);
+  els['theme-color-select'].disabled = name === 'dark';
+  applyColorScheme();
 }
 
-function handleBackgroundUpload(event) {
-  const file = event.target.files?.[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const dataUrl = typeof reader.result === 'string' ? reader.result : '';
-    if (!dataUrl) return;
-    applyBackgroundImage(dataUrl);
-    localStorage.setItem(BG_KEY, dataUrl);
-  };
-  reader.readAsDataURL(file);
+function applyThemeColorFromSelect() {
+  localStorage.setItem(THEME_COLOR_KEY, els['theme-color-select'].value);
+  applyColorScheme();
 }
 
-function applyBackgroundImage(dataUrl) {
-  document.body.style.setProperty('--user-bg-image', `url(${dataUrl})`);
-  document.body.classList.add('has-custom-bg');
+function applyAccentColorFromSelect() {
+  localStorage.setItem(ACCENT_COLOR_KEY, els['accent-color-select'].value);
+  applyColorScheme();
 }
 
-function clearBackgroundImage() {
-  document.body.style.removeProperty('--user-bg-image');
-  document.body.classList.remove('has-custom-bg');
-  localStorage.removeItem(BG_KEY);
-  if (els['bg-upload']) {
-    els['bg-upload'].value = '';
+function applyColorScheme() {
+  const themeMode = document.body.classList.contains('theme-dark') ? 'dark' : 'default';
+  const themeColorKey = els['theme-color-select'].value;
+  const accentKey = els['accent-color-select'].value;
+  const themePreset = themeColorPresets[themeColorKey] || themeColorPresets.blue;
+  const accentPreset = accentColorPresets[accentKey] || accentColorPresets.green;
+
+  if (themeMode === 'default') {
+    document.body.style.setProperty('--primary', themePreset.primary);
+    document.body.style.setProperty('--primary-strong', themePreset.strong);
+    document.body.style.setProperty('--accent', accentPreset.accent);
+    document.body.style.setProperty('--canvas-line', themePreset.primary);
+    document.body.style.setProperty('--canvas-query', accentPreset.accent);
+  } else {
+    document.body.style.setProperty('--primary', accentPreset.accent);
+    document.body.style.setProperty('--primary-strong', accentPreset.strong);
+    document.body.style.setProperty('--accent', accentPreset.accent);
+    document.body.style.setProperty('--canvas-line', accentPreset.accent);
+    document.body.style.setProperty('--canvas-query', accentPreset.strong);
   }
 }
 
@@ -113,7 +135,6 @@ function toggleModule(targetId) {
   document.querySelectorAll('.module-toggle').forEach((item) => item.classList.remove('is-active'));
   button.classList.add('is-active');
   syncModuleVisibility(targetId, true);
-  scrollToModule(targetId);
 }
 
 function syncModuleVisibility(activatedId = null, isActivated = false) {
@@ -130,14 +151,6 @@ function syncModuleVisibility(activatedId = null, isActivated = false) {
       container.prepend(activatedSection);
     }
   }
-}
-
-function scrollToModule(targetId) {
-  const section = document.getElementById(targetId);
-  if (!section) return;
-  requestAnimationFrame(() => {
-    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
 }
 
 function handleInput(event) {
