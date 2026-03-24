@@ -51,6 +51,8 @@ p {
   justify-content: space-between;
   align-items: flex-end;
   gap: 24px;
+  max-width: 1440px;
+  margin: 0 auto;
   padding: 36px 40px 24px;
 }
 
@@ -92,6 +94,8 @@ h1 {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  max-width: 1440px;
+  margin: 0 auto;
   padding: 14px 40px 18px;
   background: rgba(238, 243, 249, 0.88);
   backdrop-filter: blur(16px);
@@ -119,7 +123,9 @@ h1 {
 }
 
 .app-grid {
-  padding: 0 40px 48px;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 40px 56px;
   display: grid;
   gap: 22px;
 }
@@ -137,6 +143,10 @@ h1 {
 
 .module-card {
   padding: 24px;
+}
+
+#spooling-core {
+  border-color: rgba(33, 102, 209, 0.18);
 }
 
 .intro-strip {
@@ -196,6 +206,10 @@ h1 {
 .core-layout {
   display: grid;
   gap: 16px;
+}
+
+.module-card + .module-card {
+  margin-top: 2px;
 }
 
 .two-col,

@@ -91,9 +91,12 @@ function setHtml(id, html) {
   els[id].innerHTML = html;
 }
 
-function format(value, digits = 4) {
+function format(value, digits = 2) {
   if (!Number.isFinite(value)) return '--';
-  return Number(value).toLocaleString('zh-CN', { maximumFractionDigits: digits });
+  return Number(value).toLocaleString('zh-CN', {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits
+  });
 }
 
 function validPositive(value) {
@@ -453,19 +456,19 @@ function computeSpool() {
   }
 
   const cards = [
-    createOutputCard('收线速度', derived.lineSpeedMPerMin, 'm/min'),
-    createOutputCard('拉力', derived.forceN ? derived.forceN / G : null, 'kg'),
-    createOutputCard('拉力', derived.forceN, 'N'),
-    createOutputCard('输出轴转速', derived.outputSpeed, 'rpm'),
-    createOutputCard('电机转速', derived.motorSpeed, 'rpm'),
-    createOutputCard('输出轴扭矩', derived.outputTorque, 'N·m'),
-    createOutputCard('电机扭矩', derived.motorTorque, 'N·m')
+    createOutputCard('收线速度', derived.lineSpeedMPerMin, 'm/min', 0),
+    createOutputCard('拉力', derived.forceN ? derived.forceN / G : null, 'kg', 0),
+    createOutputCard('拉力', derived.forceN, 'N', 0),
+    createOutputCard('输出轴转速', derived.outputSpeed, 'rpm', 0),
+    createOutputCard('电机转速', derived.motorSpeed, 'rpm', 0),
+    createOutputCard('输出轴扭矩', derived.outputTorque, 'N·m', 0),
+    createOutputCard('电机扭矩', derived.motorTorque, 'N·m', 0)
   ];
   els['spool-output'].innerHTML = cards.join('');
 }
 
-function createOutputCard(label, value, unit) {
-  return `<div class="output-card"><div class="label">${label}</div><div class="value">${Number.isFinite(value) ? `${format(value)} ${unit}` : '--'}</div></div>`;
+function createOutputCard(label, value, unit, digits = 2) {
+  return `<div class="output-card"><div class="label">${label}</div><div class="value">${Number.isFinite(value) ? `${format(value, digits)} ${unit}` : '--'}</div></div>`;
 }
 
 function clearAllInputs() {
