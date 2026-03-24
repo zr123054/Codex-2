@@ -3,6 +3,7 @@ const THEME_KEY = 'hardware-tool-theme-v1';
 const THEME_COLOR_KEY = 'hardware-tool-theme-color-v1';
 const ACCENT_COLOR_KEY = 'hardware-tool-accent-color-v1';
 let draggedModuleButton = null;
+const autoFillSuppressedFields = new Set();
 
 const themeColorPresets = {
   blue: { primary: '#3b82f6', strong: '#2563eb' },
@@ -166,6 +167,13 @@ function syncModuleVisibility(activatedId = null, isActivated = false) {
 function handleInput(event) {
   const target = event.target;
   if (!(target instanceof Element)) return;
+  if (target instanceof HTMLInputElement && target.type === 'number') {
+    if (target.value === '') {
+      autoFillSuppressedFields.add(target.id);
+    } else {
+      autoFillSuppressedFields.delete(target.id);
+    }
+  }
   if (event.type !== 'input') {
     sanitizeNumericInput(target, event.type);
   }
@@ -255,18 +263,30 @@ function computeMotorPower() {
   }
   if (!Number.isFinite(power) && validPositive(torque) && validPositive(speed)) {
     const computed = torque * 2 * Math.PI * speed / 60;
+    if (autoFillSuppressedFields.has('motor-power')) {
+      setHtml('motor-power-output', `<strong>功率：</strong>${format(computed)} W（已计算，当前未自动回填）`);
+      return;
+    }
     els['motor-power'].value = format(computed);
     setHtml('motor-power-output', `<strong>功率：</strong>${format(computed)} W（已回填输入框）`);
     return;
   }
   if (!Number.isFinite(speed) && validPositive(torque) && validPositive(power)) {
     const computed = power * 60 / (torque * 2 * Math.PI);
+    if (autoFillSuppressedFields.has('motor-speed')) {
+      setHtml('motor-power-output', `<strong>转速：</strong>${format(computed)} rpm（已计算，当前未自动回填）`);
+      return;
+    }
     els['motor-speed'].value = format(computed);
     setHtml('motor-power-output', `<strong>转速：</strong>${format(computed)} rpm（已回填输入框）`);
     return;
   }
   if (!Number.isFinite(torque) && validPositive(speed) && validPositive(power)) {
     const computed = power * 60 / (speed * 2 * Math.PI);
+    if (autoFillSuppressedFields.has('motor-torque')) {
+      setHtml('motor-power-output', `<strong>扭矩：</strong>${format(computed)} N·m（已计算，当前未自动回填）`);
+      return;
+    }
     els['motor-torque'].value = format(computed);
     setHtml('motor-power-output', `<strong>扭矩：</strong>${format(computed)} N·m（已回填输入框）`);
     return;
@@ -549,12 +569,20 @@ function computeBattery() {
   const wh = parseNum('wh-value');
   if (validPositive(mah) && validPositive(voltage) && !Number.isFinite(wh)) {
     const computed = mah * voltage / 1000;
+    if (autoFillSuppressedFields.has('wh-value')) {
+      setHtml('battery-output', `<strong>能量：</strong>${format(computed)} Wh（已计算，当前未自动回填）`);
+      return;
+    }
     els['wh-value'].value = format(computed);
     setHtml('battery-output', `<strong>能量：</strong>${format(computed)} Wh（已回填输入框）`);
     return;
   }
   if (validPositive(wh) && validPositive(voltage) && !Number.isFinite(mah)) {
     const computed = wh * 1000 / voltage;
+    if (autoFillSuppressedFields.has('mah-value')) {
+      setHtml('battery-output', `<strong>容量：</strong>${format(computed)} mAh（已计算，当前未自动回填）`);
+      return;
+    }
     els['mah-value'].value = format(computed);
     setHtml('battery-output', `<strong>容量：</strong>${format(computed)} mAh（已回填输入框）`);
     return;
@@ -783,6 +811,7 @@ function clearAllInputs() {
   document.querySelectorAll('input[type="number"]').forEach((input) => {
     input.value = '';
   });
+  autoFillSuppressedFields.clear();
   document.querySelector('input[name="spool-mode"][value="speed"]').checked = true;
   initSpoolMode();
   refreshAll();
