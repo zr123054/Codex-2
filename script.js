@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bindElements();
   initTheme();
   initModuleSelector();
+  initDynamicInputs();
   initConverter();
   initSpoolMode();
   bindEvents();
@@ -32,13 +33,8 @@ function bindElements() {
 }
 
 function bindEvents() {
-  document.querySelectorAll('input').forEach((input) => input.addEventListener('input', handleInput));
-  document.querySelectorAll('textarea').forEach((textarea) => textarea.addEventListener('input', handleInput));
-  document.querySelectorAll('select').forEach((select) => select.addEventListener('change', handleInput));
-  document.querySelectorAll('input[name="spool-mode"]').forEach((radio) => radio.addEventListener('change', () => {
-    initSpoolMode();
-    computeSpool();
-  }));
+  document.addEventListener('input', handleInput);
+  document.addEventListener('change', handleInput);
   document.querySelectorAll('.module-toggle').forEach((button) => {
     button.addEventListener('click', () => toggleModule(button.dataset.target));
     button.addEventListener('dragstart', handleModuleDragStart);
@@ -97,8 +93,14 @@ function syncModuleVisibility(activatedId = null, isActivated = false) {
 }
 
 function handleInput(event) {
-  sanitizeNumericInput(event.target);
-  if (event.target.closest('#spooling-core')) {
+  const target = event.target;
+  sanitizeNumericInput(target);
+  if (target instanceof HTMLInputElement && target.name === 'spool-mode') {
+    initSpoolMode();
+    computeSpool();
+    return;
+  }
+  if (target.closest('#spooling-core')) {
     initSpoolMode();
   }
   refreshAll();
@@ -175,16 +177,8 @@ function computeMotorPower() {
 }
 
 function computeLinearFitCurve() {
-  const pointsText = els['fit-points'].value.trim();
   const queryX = parseNum('fit-query-x');
-  const points = pointsText
-    ? pointsText.split(/\n+/).map((line) => line.trim()).filter(Boolean)
-      .map((line) => line
-        .split(/[,\uFF0C\s]+/)
-        .map((item) => Number.parseFloat(item.trim()))
-        .filter((v) => Number.isFinite(v)))
-      .filter((pair) => pair.length === 2 && pair.every((v) => Number.isFinite(v)))
-    : [];
+  const points = readPairInputs('#fit-points-list', '.fit-x', '.fit-y');
 
   drawFitCurve(points, queryX);
 
@@ -516,16 +510,15 @@ function computeGearRatioModule() {
 }
 
 function computeParallelShaftRatio() {
-  const text = els['parallel-stages'].value.trim();
-  if (!text) {
+  const pairs = readPairInputs('#parallel-stages-list', '.parallel-driver', '.parallel-driven');
+  if (!pairs.length) {
     setHtml('parallel-output', '<span class="hint">请输入每级主动/从动齿数。</span>');
     return;
   }
-  const rows = text.split(/\n+/).map((line) => line.trim()).filter(Boolean);
   const stageRatios = [];
-  for (let i = 0; i < rows.length; i += 1) {
-    const parts = rows[i].split(/[,\uFF0C\s]+/).filter(Boolean).map(Number.parseFloat);
-    if (parts.length !== 2 || parts.some((v) => !Number.isFinite(v) || v <= 0)) {
+  for (let i = 0; i < pairs.length; i += 1) {
+    const parts = pairs[i];
+    if (parts.some((v) => !Number.isFinite(v) || v <= 0)) {
       setHtml('parallel-output', `<span class="error">第 ${i + 1} 行格式错误，请使用“主动,从动”且均为正数。</span>`);
       return;
     }
@@ -569,12 +562,13 @@ function computePlanetaryRatio() {
 }
 
 function computeStackedRatio() {
-  const text = els['stack-ratios'].value.trim();
-  if (!text) {
+  const ratios = [...document.querySelectorAll('#stack-ratios-list .stack-ratio')]
+    .map((input) => Number.parseFloat(input.value))
+    .filter((value) => Number.isFinite(value));
+  if (!ratios.length) {
     setHtml('stack-output', '<span class="hint">请输入各级减速比。</span>');
     return;
   }
-  const ratios = text.split(/[\n,\uFF0C\s]+/).filter(Boolean).map(Number.parseFloat);
   if (!ratios.length || ratios.some((v) => !Number.isFinite(v) || v <= 0)) {
     setHtml('stack-output', '<span class="error">请仅输入正数减速比。</span>');
     return;
@@ -742,6 +736,46 @@ function sanitizeNumericInput(target) {
     value = Math.min(value, noLoad);
   }
   target.value = String(value);
+}
+
+function initDynamicInputs() {
+  els['add-fit-point'].addEventListener('click', () => {
+    appendPairRow('fit-points-list', 'fit-x', 'fit-y', 'x 例如 2000', 'y 例如 0.7');
+  });
+  els['add-parallel-stage'].addEventListener('click', () => {
+    appendPairRow('parallel-stages-list', 'parallel-driver', 'parallel-driven', '主动齿数', '从动齿数', 1);
+  });
+  els['add-stack-ratio'].addEventListener('click', () => {
+    appendSingleRow('stack-ratios-list', 'stack-ratio', '例如 3');
+  });
+}
+
+function appendPairRow(containerId, classA, classB, placeholderA, placeholderB, min = 0) {
+  const row = document.createElement('div');
+  row.className = 'dynamic-row two-input';
+  row.innerHTML = `
+    <input class="${classA}" type="number" step="any" min="${min}" placeholder="${placeholderA}" />
+    <input class="${classB}" type="number" step="any" min="${min}" placeholder="${placeholderB}" />
+  `;
+  els[containerId].appendChild(row);
+}
+
+function appendSingleRow(containerId, inputClass, placeholder, min = 0) {
+  const row = document.createElement('div');
+  row.className = 'dynamic-row';
+  row.innerHTML = `<input class="${inputClass}" type="number" step="any" min="${min}" placeholder="${placeholder}" />`;
+  els[containerId].appendChild(row);
+}
+
+function readPairInputs(containerSelector, firstSelector, secondSelector) {
+  const rows = [...document.querySelectorAll(`${containerSelector} .dynamic-row`)];
+  return rows
+    .map((row) => {
+      const first = row.querySelector(firstSelector);
+      const second = row.querySelector(secondSelector);
+      return [Number.parseFloat(first?.value), Number.parseFloat(second?.value)];
+    })
+    .filter(([a, b]) => Number.isFinite(a) || Number.isFinite(b));
 }
 
 function handleModuleDragStart(event) {

@@ -144,6 +144,17 @@ h1 { margin-bottom: 10px; font-size: 36px; line-height: 1.16; }
 .field-grid { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
 .compact-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 .converter-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.dynamic-group { display: grid; gap: 10px; }
+.dynamic-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.dynamic-list { display: grid; gap: 8px; }
+.dynamic-row { display: grid; gap: 8px; }
+.dynamic-row.two-input { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.inline-btn { padding: 7px 12px; border-radius: 10px; }
 
 label { display: grid; gap: 6px; font-size: 14px; color: var(--muted); writing-mode: horizontal-tb; }
 input, select, textarea {
@@ -264,4 +275,5 @@ body.theme-dark .primary-btn {
   .module-header, .selector-header, .panel-headline { flex-direction: column; }
   h1 { font-size: 30px; }
   .radio-group label { min-width: auto; width: 100%; }
+  .dynamic-row.two-input { grid-template-columns: 1fr; }
 }

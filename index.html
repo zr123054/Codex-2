@@ -151,11 +151,24 @@
 
           <article class="panel fit-panel">
             <h3>线性拟合曲线（自定义坐标）</h3>
-            <p class="hint">每行输入一个点，支持 x,y / x，y / x y（例如 0,1.2）。至少 2 个点后自动线性拟合。</p>
+            <p class="hint">默认提供 2 组坐标输入，可点击“新增”继续添加。至少 2 个点后自动线性拟合。</p>
             <div class="field-grid">
-              <label>坐标点列表
-                <textarea id="fit-points" rows="5" placeholder="0,1.2&#10;1000,1.0&#10;2000,0.7"></textarea>
-              </label>
+              <div class="dynamic-group">
+                <div class="dynamic-head">
+                  <label>坐标点列表（x,y）</label>
+                  <button id="add-fit-point" type="button" class="secondary-btn inline-btn">新增</button>
+                </div>
+                <div id="fit-points-list" class="dynamic-list">
+                  <div class="dynamic-row two-input">
+                    <input class="fit-x" type="number" step="any" min="0" placeholder="x 例如 0" />
+                    <input class="fit-y" type="number" step="any" min="0" placeholder="y 例如 1.2" />
+                  </div>
+                  <div class="dynamic-row two-input">
+                    <input class="fit-x" type="number" step="any" min="0" placeholder="x 例如 1000" />
+                    <input class="fit-y" type="number" step="any" min="0" placeholder="y 例如 1.0" />
+                  </div>
+                </div>
+              </div>
               <label>查询 x
                 <input id="fit-query-x" type="number" step="any" placeholder="例如 1500" />
               </label>
@@ -308,9 +321,22 @@
           <article class="panel">
             <h3>多级平行轴减速比</h3>
             <p class="hint">每级减速比 = 从动齿数 / 主动齿数；总减速比 = 各级乘积。</p>
-            <label>每级齿数（每行：主动,从动）
-              <textarea id="parallel-stages" rows="5" placeholder="12,60&#10;15,45"></textarea>
-            </label>
+            <div class="dynamic-group">
+              <div class="dynamic-head">
+                <label>每级齿数（主动,从动）</label>
+                <button id="add-parallel-stage" type="button" class="secondary-btn inline-btn">新增</button>
+              </div>
+              <div id="parallel-stages-list" class="dynamic-list">
+                <div class="dynamic-row two-input">
+                  <input class="parallel-driver" type="number" min="1" step="1" placeholder="主动齿数 例如 12" />
+                  <input class="parallel-driven" type="number" min="1" step="1" placeholder="从动齿数 例如 60" />
+                </div>
+                <div class="dynamic-row two-input">
+                  <input class="parallel-driver" type="number" min="1" step="1" placeholder="主动齿数 例如 15" />
+                  <input class="parallel-driven" type="number" min="1" step="1" placeholder="从动齿数 例如 45" />
+                </div>
+              </div>
+            </div>
             <div id="parallel-output" class="result-box"></div>
           </article>
 
@@ -338,10 +364,21 @@
 
         <article class="panel">
           <h3>多级减速结构叠加总减速比</h3>
-          <p class="hint">输入每级减速比（逗号或换行分隔），自动输出总减速比。</p>
-          <label>各级减速比列表
-            <textarea id="stack-ratios" rows="3" placeholder="5&#10;4.2&#10;3"></textarea>
-          </label>
+          <p class="hint">默认提供 2 级输入，可点击“新增”增加级数，自动输出总减速比。</p>
+          <div class="dynamic-group">
+            <div class="dynamic-head">
+              <label>各级减速比列表</label>
+              <button id="add-stack-ratio" type="button" class="secondary-btn inline-btn">新增</button>
+            </div>
+            <div id="stack-ratios-list" class="dynamic-list">
+              <div class="dynamic-row">
+                <input class="stack-ratio" type="number" min="0" step="any" placeholder="例如 5" />
+              </div>
+              <div class="dynamic-row">
+                <input class="stack-ratio" type="number" min="0" step="any" placeholder="例如 4.2" />
+              </div>
+            </div>
+          </div>
           <div id="stack-output" class="result-box"></div>
         </article>
       </section>
