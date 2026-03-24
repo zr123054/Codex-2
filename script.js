@@ -96,6 +96,7 @@ function applyTheme(name) {
   document.body.classList.remove('theme-default', 'theme-dark');
   document.body.classList.add(`theme-${name}`);
   els['theme-color-select'].disabled = name === 'dark';
+  els['accent-color-select'].disabled = name !== 'dark';
   applyColorScheme();
 }
 
@@ -119,9 +120,9 @@ function applyColorScheme() {
   if (themeMode === 'default') {
     document.body.style.setProperty('--primary', themePreset.primary);
     document.body.style.setProperty('--primary-strong', themePreset.strong);
-    document.body.style.setProperty('--accent', accentPreset.accent);
+    document.body.style.setProperty('--accent', themePreset.strong);
     document.body.style.setProperty('--canvas-line', themePreset.primary);
-    document.body.style.setProperty('--canvas-query', accentPreset.accent);
+    document.body.style.setProperty('--canvas-query', themePreset.strong);
   } else {
     document.body.style.setProperty('--primary', accentPreset.accent);
     document.body.style.setProperty('--primary-strong', accentPreset.strong);
