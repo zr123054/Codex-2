@@ -66,7 +66,6 @@ function bindEvents() {
     button.addEventListener('dragend', handleModuleDragEnd);
   });
 
-  els['copy-summary'].addEventListener('click', copySummary);
   els['clear-all'].addEventListener('click', clearAllInputs);
   els['theme-select'].addEventListener('change', applyThemeFromSelect);
   els['theme-color-select'].addEventListener('change', applyThemeColorFromSelect);
@@ -771,22 +770,6 @@ function clearAllInputs() {
   document.querySelector('input[name="spool-mode"][value="speed"]').checked = true;
   initSpoolMode();
   refreshAll();
-}
-
-async function copySummary() {
-  const visibleSections = [...document.querySelectorAll('[data-module-section]:not(.is-hidden)')];
-  const summary = visibleSections.map((section) => {
-    const title = section.querySelector('h2')?.innerText || '模块';
-    const content = section.innerText.replace(/\s+/g, ' ').trim();
-    return `${title}：${content}`;
-  }).join('\n');
-
-  try {
-    await navigator.clipboard.writeText(summary || '当前没有显示模块。');
-    alert('结果摘要已复制到剪贴板。');
-  } catch (error) {
-    alert(`复制失败，请手动复制：\n${summary}`);
-  }
 }
 
 function gcd(a, b) {
