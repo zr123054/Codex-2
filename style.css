@@ -298,16 +298,16 @@ body.theme-dark .module-theme-b,
 body.theme-dark .module-theme-c,
 body.theme-dark .module-theme-d,
 body.theme-dark .module-theme-e {
-  background: linear-gradient(135deg, color-mix(in srgb, #2a2a2a 88%, var(--primary) 12%) 0%, #2a2a2a 62%);
+  background: #2a2a2a;
 }
 
 body.theme-dark .module-card[class*="module-theme-"] .panel {
-  background: color-mix(in srgb, #2a2a2a 90%, var(--primary) 10%);
+  background: #2f2f2f;
 }
 
 body.theme-dark .module-card[class*="module-theme-"] .result-box,
 body.theme-dark .module-card[class*="module-theme-"] .note-box {
-  background: color-mix(in srgb, #242424 88%, var(--primary) 12%);
+  background: #262626;
 }
 
 body.theme-dark .module-toggle {
