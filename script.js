@@ -56,6 +56,7 @@ function bindElements() {
 function bindEvents() {
   document.addEventListener('input', handleInput);
   document.addEventListener('change', handleInput);
+  document.addEventListener('focusout', handleInput);
   document.addEventListener('click', handleDynamicActions);
   document.querySelectorAll('.module-toggle').forEach((button) => {
     button.addEventListener('click', () => toggleModule(button.dataset.target));
@@ -166,7 +167,7 @@ function syncModuleVisibility(activatedId = null, isActivated = false) {
 function handleInput(event) {
   const target = event.target;
   if (!(target instanceof Element)) return;
-  sanitizeNumericInput(target);
+  sanitizeNumericInput(target, event.type);
   if (target instanceof HTMLInputElement && target.name === 'spool-mode') {
     initSpoolMode();
     computeSpool();
@@ -792,7 +793,7 @@ function gcd(a, b) {
   return b === 0 ? a : gcd(b, a % b);
 }
 
-function sanitizeNumericInput(target) {
+function sanitizeNumericInput(target, eventType = 'input') {
   if (!(target instanceof HTMLInputElement) || target.type !== 'number') return;
   let raw = target.value;
   if (!raw) return;
@@ -802,6 +803,13 @@ function sanitizeNumericInput(target) {
     raw = raw.slice(0, firstDot + 1) + raw.slice(firstDot + 1).replace(/\./g, '');
   }
   if (raw.startsWith('.')) raw = `0${raw}`;
+  target.value = raw;
+
+  // 输入阶段保留中间态（例如 0.），避免无法继续输入小数。
+  if (eventType === 'input' && (raw === '' || raw.endsWith('.'))) {
+    return;
+  }
+
   let value = Number.parseFloat(raw);
   if (!Number.isFinite(value)) {
     target.value = '';
