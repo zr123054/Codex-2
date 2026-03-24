@@ -1,4 +1,5 @@
 const G = 9.81;
+const THEME_KEY = 'hardware-tool-theme-v1';
 
 const unitConfig = {
   length: { label: '长度', units: { mm: 0.001, cm: 0.01, m: 1, inch: 0.0254 } },
@@ -15,6 +16,7 @@ const els = {};
 
 document.addEventListener('DOMContentLoaded', () => {
   bindElements();
+  initTheme();
   initModuleSelector();
   initConverter();
   initSpoolMode();
@@ -35,7 +37,6 @@ function bindEvents() {
     initSpoolMode();
     computeSpool();
   }));
-
   document.querySelectorAll('.module-toggle').forEach((button) => {
     button.addEventListener('click', () => toggleModule(button.dataset.target));
   });
@@ -44,6 +45,24 @@ function bindEvents() {
   els['hide-all-modules'].addEventListener('click', hideAllModules);
   els['copy-summary'].addEventListener('click', copySummary);
   els['clear-all'].addEventListener('click', clearAllInputs);
+  els['theme-select'].addEventListener('change', applyThemeFromSelect);
+}
+
+function initTheme() {
+  const saved = localStorage.getItem(THEME_KEY) || 'default';
+  els['theme-select'].value = saved;
+  applyTheme(saved);
+}
+
+function applyThemeFromSelect() {
+  const selected = els['theme-select'].value;
+  applyTheme(selected);
+  localStorage.setItem(THEME_KEY, selected);
+}
+
+function applyTheme(name) {
+  document.body.classList.remove('theme-default', 'theme-vivid', 'theme-dark');
+  document.body.classList.add(`theme-${name}`);
 }
 
 function initModuleSelector() {
@@ -53,7 +72,7 @@ function initModuleSelector() {
 function toggleModule(targetId) {
   const button = document.querySelector(`.module-toggle[data-target="${targetId}"]`);
   button.classList.toggle('is-active');
-  syncModuleVisibility();
+  syncModuleVisibility(targetId, button.classList.contains('is-active'));
 }
 
 function showAllModules() {
@@ -66,11 +85,20 @@ function hideAllModules() {
   syncModuleVisibility();
 }
 
-function syncModuleVisibility() {
+function syncModuleVisibility(activatedId = null, isActivated = false) {
+  const container = els['module-sections'];
   document.querySelectorAll('.module-toggle').forEach((button) => {
     const section = document.getElementById(button.dataset.target);
-    section.classList.toggle('is-hidden', !button.classList.contains('is-active'));
+    const active = button.classList.contains('is-active');
+    section.classList.toggle('is-hidden', !active);
   });
+
+  if (activatedId && isActivated) {
+    const activatedSection = document.getElementById(activatedId);
+    if (activatedSection && container.firstElementChild !== activatedSection) {
+      container.prepend(activatedSection);
+    }
+  }
 }
 
 function handleInput(event) {
@@ -245,7 +273,7 @@ function computeDisplay() {
   const ppiHeight = parseNum('ppi-height');
   const diagonal = parseNum('ppi-diagonal');
   if (validPositive(ppiWidth) && validPositive(ppiHeight) && validPositive(diagonal)) {
-    setHtml('ppi-output', `<strong>PPI：</strong>${format(Math.hypot(ppiWidth, ppiHeight) / diagonal)} `);
+    setHtml('ppi-output', `<strong>PPI：</strong>${format(Math.hypot(ppiWidth, ppiHeight) / diagonal)}`);
   } else {
     setHtml('ppi-output', '<span class="hint">输入分辨率与尺寸后，估算 PPI。</span>');
   }
@@ -434,19 +462,19 @@ function computeSpool() {
   if (validPositive(derived.outputSpeed) && !validPositive(derived.motorSpeed)) derived.motorSpeed = derived.outputSpeed * ratio;
 
   const cards = [
-    createOutputCard('收线速度', derived.lineSpeedMPerMin, 'm/min', 0),
-    createOutputCard('拉力', derived.forceN ? derived.forceN / G : null, 'kg', 0),
-    createOutputCard('拉力', derived.forceN, 'N', 0),
-    createOutputCard('输出轴转速', derived.outputSpeed, 'rpm', 0),
-    createOutputCard('电机转速', derived.motorSpeed, 'rpm', 0),
-    createOutputCard('输出轴扭矩', derived.outputTorque, 'N·m', 0),
-    createOutputCard('电机扭矩', derived.motorTorque, 'N·m', 0)
+    createOutputCard('收线速度', derived.lineSpeedMPerMin, 'm/min'),
+    createOutputCard('拉力', derived.forceN ? derived.forceN / G : null, 'kg'),
+    createOutputCard('拉力', derived.forceN, 'N'),
+    createOutputCard('输出轴转速', derived.outputSpeed, 'rpm'),
+    createOutputCard('电机转速', derived.motorSpeed, 'rpm'),
+    createOutputCard('输出轴扭矩', derived.outputTorque, 'N·m'),
+    createOutputCard('电机扭矩', derived.motorTorque, 'N·m')
   ];
   els['spool-output'].innerHTML = cards.join('');
 }
 
-function createOutputCard(label, value, unit, digits = 2) {
-  return `<div class="output-card"><div class="label">${label}</div><div class="value">${Number.isFinite(value) ? `${format(value, digits)} ${unit}` : '--'}</div></div>`;
+function createOutputCard(label, value, unit) {
+  return `<div class="output-card"><div class="label">${label}</div><div class="value">${Number.isFinite(value) ? `${format(value)} ${unit}` : '--'}</div></div>`;
 }
 
 function clearAllInputs() {
