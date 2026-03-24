@@ -166,7 +166,9 @@ function syncModuleVisibility(activatedId = null, isActivated = false) {
 function handleInput(event) {
   const target = event.target;
   if (!(target instanceof Element)) return;
-  sanitizeNumericInput(target, event.type);
+  if (event.type !== 'input') {
+    sanitizeNumericInput(target, event.type);
+  }
   if (target instanceof HTMLInputElement && target.name === 'spool-mode') {
     initSpoolMode();
     computeSpool();
@@ -778,6 +780,7 @@ function gcd(a, b) {
 
 function sanitizeNumericInput(target, eventType = 'input') {
   if (!(target instanceof HTMLInputElement) || target.type !== 'number') return;
+  if (eventType === 'input') return;
   let raw = target.value;
   if (!raw) return;
   raw = raw.replace(/[^0-9.]/g, '');
@@ -787,11 +790,6 @@ function sanitizeNumericInput(target, eventType = 'input') {
   }
   if (raw.startsWith('.')) raw = `0${raw}`;
   target.value = raw;
-
-  // 输入阶段保留中间态（例如 0.），避免无法继续输入小数。
-  if (eventType === 'input' && (raw === '' || raw.endsWith('.'))) {
-    return;
-  }
 
   let value = Number.parseFloat(raw);
   if (!Number.isFinite(value)) {
