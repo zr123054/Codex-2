@@ -97,6 +97,7 @@ function syncModuleVisibility(activatedId = null, isActivated = false) {
 }
 
 function handleInput(event) {
+  sanitizeNumericInput(event.target);
   if (event.target.closest('#spooling-core')) {
     initSpoolMode();
   }
@@ -177,7 +178,10 @@ function computeLinearFitCurve() {
   const queryX = parseNum('fit-query-x');
   const points = pointsText
     ? pointsText.split(/\n+/).map((line) => line.trim()).filter(Boolean)
-      .map((line) => line.split(',').map((item) => Number.parseFloat(item.trim())))
+      .map((line) => line
+        .split(/[,\uFF0C\s]+/)
+        .map((item) => Number.parseFloat(item.trim()))
+        .filter((v) => Number.isFinite(v)))
       .filter((pair) => pair.length === 2 && pair.every((v) => Number.isFinite(v)))
     : [];
 
@@ -238,8 +242,15 @@ function drawFitCurve(points, queryX) {
   const maxY = Math.max(...ys);
   const spanX = maxX - minX || 1;
   const spanY = maxY - minY || 1;
-  const mapX = (x) => pad + (x - minX) / spanX * (canvas.width - pad * 2);
-  const mapY = (y) => canvas.height - pad - (y - minY) / spanY * (canvas.height - pad * 2);
+  const marginRatio = 0.12;
+  const minXView = minX - spanX * marginRatio;
+  const maxXView = maxX + spanX * marginRatio;
+  const minYView = minY - spanY * marginRatio;
+  const maxYView = maxY + spanY * marginRatio;
+  const spanXView = maxXView - minXView || 1;
+  const spanYView = maxYView - minYView || 1;
+  const mapX = (x) => pad + (x - minXView) / spanXView * (canvas.width - pad * 2);
+  const mapY = (y) => canvas.height - pad - (y - minYView) / spanYView * (canvas.height - pad * 2);
 
   // draw points
   ctx.fillStyle = '#f97316';
@@ -269,7 +280,7 @@ function drawFitCurve(points, queryX) {
     ctx.stroke();
     if (Number.isFinite(queryX)) {
       const qy = k * queryX + b;
-      const clampedX = Math.min(maxX, Math.max(minX, queryX));
+      const clampedX = Math.min(maxXView, Math.max(minXView, queryX));
       ctx.fillStyle = '#0ea5a1';
       ctx.beginPath();
       ctx.arc(mapX(clampedX), mapY(qy), 5, 0, Math.PI * 2);
@@ -615,6 +626,34 @@ async function copySummary() {
 
 function gcd(a, b) {
   return b === 0 ? a : gcd(b, a % b);
+}
+
+function sanitizeNumericInput(target) {
+  if (!(target instanceof HTMLInputElement) || target.type !== 'number') return;
+  let raw = target.value;
+  if (!raw) return;
+  raw = raw.replace(/[^0-9.]/g, '');
+  const firstDot = raw.indexOf('.');
+  if (firstDot !== -1) {
+    raw = raw.slice(0, firstDot + 1) + raw.slice(firstDot + 1).replace(/\./g, '');
+  }
+  if (raw.startsWith('.')) raw = `0${raw}`;
+  let value = Number.parseFloat(raw);
+  if (!Number.isFinite(value)) {
+    target.value = '';
+    return;
+  }
+  value = Math.max(0, value);
+  const min = target.min ? Number.parseFloat(target.min) : null;
+  const max = target.max ? Number.parseFloat(target.max) : null;
+  if (Number.isFinite(min)) value = Math.max(min, value);
+  if (Number.isFinite(max)) value = Math.min(max, value);
+  const noLoad = parseNum('tn-no-load');
+  const speedInputs = new Set(['motor-speed', 'gear-input-speed', 'tn-query-speed', 'spool-motor-speed']);
+  if (speedInputs.has(target.id) && validPositive(noLoad)) {
+    value = Math.min(value, noLoad);
+  }
+  target.value = String(value);
 }
 
 function handleModuleDragStart(event) {
