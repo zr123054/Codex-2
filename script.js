@@ -114,6 +114,7 @@ function refreshAll() {
   computeRuntime();
   computeBattery();
   computeConverter();
+  computeGearRatioModule();
   computeSpool();
 }
 
@@ -493,6 +494,80 @@ function computeConverter() {
   const base = input * config.units[from];
   const result = base / config.units[to];
   setHtml('converter-output', `<strong>换算结果：</strong>${format(result)} ${to}`);
+}
+
+function computeGearRatioModule() {
+  computeParallelShaftRatio();
+  computePlanetaryRatio();
+  computeStackedRatio();
+}
+
+function computeParallelShaftRatio() {
+  const text = els['parallel-stages'].value.trim();
+  if (!text) {
+    setHtml('parallel-output', '<span class="hint">请输入每级主动/从动齿数。</span>');
+    return;
+  }
+  const rows = text.split(/\n+/).map((line) => line.trim()).filter(Boolean);
+  const stageRatios = [];
+  for (let i = 0; i < rows.length; i += 1) {
+    const parts = rows[i].split(/[,\uFF0C\s]+/).filter(Boolean).map(Number.parseFloat);
+    if (parts.length !== 2 || parts.some((v) => !Number.isFinite(v) || v <= 0)) {
+      setHtml('parallel-output', `<span class="error">第 ${i + 1} 行格式错误，请使用“主动,从动”且均为正数。</span>`);
+      return;
+    }
+    const [driver, driven] = parts;
+    stageRatios.push(driven / driver);
+  }
+  const total = stageRatios.reduce((acc, ratio) => acc * ratio, 1);
+  const details = stageRatios.map((ratio, idx) => `第 ${idx + 1} 级：${format(ratio, 4)}`);
+  setHtml('parallel-output', `<ul class="metric-list">${details.map((d) => `<li>${d}</li>`).join('')}<li><strong>总减速比：${format(total, 4)}</strong></li></ul>`);
+}
+
+function computePlanetaryRatio() {
+  const zs = parseNum('planet-sun-teeth');
+  const zr = parseNum('planet-ring-teeth');
+  const mode = els['planet-mode'].value;
+  if (!validPositive(zs) || !validPositive(zr)) {
+    setHtml('planet-output', '<span class="hint">请输入 Zs 与 Zr 后自动计算。</span>');
+    return;
+  }
+  if (zr <= zs) {
+    setHtml('planet-output', '<span class="error">通常需要 Zr > Zs，当前输入不满足。</span>');
+    return;
+  }
+
+  let ratio;
+  let desc;
+  if (mode === 'ring_fixed') {
+    ratio = 1 + zr / zs;
+    desc = '内齿圈固定，太阳轮输入，行星架输出';
+  } else if (mode === 'sun_fixed') {
+    ratio = 1 + zs / zr;
+    desc = '太阳轮固定，内齿圈输入，行星架输出';
+  } else if (mode === 'carrier_fixed') {
+    ratio = zr / zs;
+    desc = '行星架固定，太阳轮输入，内齿圈输出（按转速比绝对值）';
+  } else {
+    setHtml('planet-output', '<span class="error">未知行星模式，请重新选择。</span>');
+    return;
+  }
+  setHtml('planet-output', `<strong>${desc}</strong><br>减速比：${format(ratio, 4)}`);
+}
+
+function computeStackedRatio() {
+  const text = els['stack-ratios'].value.trim();
+  if (!text) {
+    setHtml('stack-output', '<span class="hint">请输入各级减速比。</span>');
+    return;
+  }
+  const ratios = text.split(/[\n,\uFF0C\s]+/).filter(Boolean).map(Number.parseFloat);
+  if (!ratios.length || ratios.some((v) => !Number.isFinite(v) || v <= 0)) {
+    setHtml('stack-output', '<span class="error">请仅输入正数减速比。</span>');
+    return;
+  }
+  const total = ratios.reduce((acc, ratio) => acc * ratio, 1);
+  setHtml('stack-output', `分级：${ratios.map((v) => format(v, 4)).join(' × ')}<br><strong>总减速比：${format(total, 4)}</strong>`);
 }
 
 function initSpoolMode() {

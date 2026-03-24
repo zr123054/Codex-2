@@ -68,8 +68,13 @@
           <strong>单位换算</strong>
           <small>常见工程单位快速换算</small>
         </button>
-        <button class="module-toggle" data-target="spooling-core" draggable="true">
+        <button class="module-toggle" data-target="gear-ratio-calc" draggable="true">
           <span class="module-code">模块 E</span>
+          <strong>传动减速比</strong>
+          <small>平行轴、行星、总减速比叠加</small>
+        </button>
+        <button class="module-toggle" data-target="spooling-core" draggable="true">
+          <span class="module-code">模块 F</span>
           <strong>收线系统联动</strong>
           <small>速度 ↔ 拉力 ↔ 电机参数</small>
         </button>
@@ -289,10 +294,60 @@
         </article>
       </section>
 
+      <section id="gear-ratio-calc" data-module-section class="module-card module-theme-c is-hidden">
+        <div class="module-header">
+          <div>
+            <h2>模块 E：传动减速比计算</h2>
+            <p>支持多级平行轴、行星减速器三种约束工况以及多级结构总减速比叠加。</p>
+          </div>
+        </div>
+
+        <div class="sub-grid two-col">
+          <article class="panel">
+            <h3>多级平行轴减速比</h3>
+            <p class="hint">每级减速比 = 从动齿数 / 主动齿数；总减速比 = 各级乘积。</p>
+            <label>每级齿数（每行：主动,从动）
+              <textarea id="parallel-stages" rows="5" placeholder="12,60&#10;15,45"></textarea>
+            </label>
+            <div id="parallel-output" class="result-box"></div>
+          </article>
+
+          <article class="panel">
+            <h3>行星减速器减速比</h3>
+            <p class="hint">输入太阳轮齿数 Zs、内齿圈齿数 Zr，选择固定件类型计算。</p>
+            <div class="field-grid compact-grid">
+              <label>太阳轮齿数 Zs
+                <input id="planet-sun-teeth" type="number" min="1" step="1" />
+              </label>
+              <label>内齿圈齿数 Zr
+                <input id="planet-ring-teeth" type="number" min="1" step="1" />
+              </label>
+              <label>固定件类型
+                <select id="planet-mode">
+                  <option value="sun_fixed">太阳齿不动</option>
+                  <option value="ring_fixed">内齿圈不动</option>
+                  <option value="carrier_fixed">行星架不动</option>
+                </select>
+              </label>
+            </div>
+            <div id="planet-output" class="result-box"></div>
+          </article>
+        </div>
+
+        <article class="panel">
+          <h3>多级减速结构叠加总减速比</h3>
+          <p class="hint">输入每级减速比（逗号或换行分隔），自动输出总减速比。</p>
+          <label>各级减速比列表
+            <textarea id="stack-ratios" rows="3" placeholder="5&#10;4.2&#10;3"></textarea>
+          </label>
+          <div id="stack-output" class="result-box"></div>
+        </article>
+      </section>
+
       <section id="spooling-core" data-module-section class="module-card module-theme-e is-hidden">
         <div class="module-header">
           <div>
-            <h2>模块 E：收线系统联动计算（核心）</h2>
+            <h2>模块 F：收线系统联动计算（核心）</h2>
             <p>实现速度 ↔ 拉力 ↔ 电机参数联动；收线速度统一显示为 m/min。</p>
           </div>
           <span class="badge accent">核心模块</span>
