@@ -16,8 +16,8 @@
     <div class="hero-actions">
       <label class="theme-select-label">主题
         <select id="theme-select">
-          <option value="default">商务蓝</option>
-          <option value="dark">深色科技</option>
+          <option value="default">ChatGPT 日间</option>
+          <option value="dark">ChatGPT 深色</option>
         </select>
       </label>
       <button id="copy-summary" class="secondary-btn">复制当前结果摘要</button>
@@ -123,45 +123,47 @@
           </article>
         </div>
 
-        <article class="panel tn-panel">
-          <div class="panel-headline">
-            <div>
-              <h3>理想 T-N 曲线</h3>
-              <p class="hint">输入空载转速与堵转扭矩，查看理想线性曲线与任意点估算。</p>
+        <div class="sub-grid two-col curve-grid">
+          <article class="panel tn-panel">
+            <div class="panel-headline">
+              <div>
+                <h3>理想 T-N 曲线</h3>
+                <p class="hint">输入空载转速与堵转扭矩，查看理想线性曲线与任意点估算。</p>
+              </div>
             </div>
-          </div>
-          <div class="field-grid tn-grid">
-            <label>空载转速 n₀ (rpm)
-              <input id="tn-no-load" type="number" step="any" min="0" placeholder="例如 5000" />
-            </label>
-            <label>堵转扭矩 Tₛ (N·m)
-              <input id="tn-stall" type="number" step="any" min="0" placeholder="例如 1.2" />
-            </label>
-            <label>查询转速 (rpm)
-              <input id="tn-query-speed" type="number" step="any" min="0" placeholder="输入任意点" />
-            </label>
-            <label>查询扭矩 (N·m)
-              <input id="tn-query-torque" type="number" step="any" min="0" placeholder="输入任意点" />
-            </label>
-          </div>
-          <canvas id="tn-canvas" width="700" height="280" aria-label="T-N 曲线图"></canvas>
-          <div id="tn-output" class="result-box"></div>
-        </article>
+            <div class="field-grid tn-grid">
+              <label>空载转速 n₀ (rpm)
+                <input id="tn-no-load" type="number" step="any" min="0" placeholder="例如 5000" />
+              </label>
+              <label>堵转扭矩 Tₛ (N·m)
+                <input id="tn-stall" type="number" step="any" min="0" placeholder="例如 1.2" />
+              </label>
+              <label>查询转速 (rpm)
+                <input id="tn-query-speed" type="number" step="any" min="0" placeholder="输入任意点" />
+              </label>
+              <label>查询扭矩 (N·m)
+                <input id="tn-query-torque" type="number" step="any" min="0" placeholder="输入任意点" />
+              </label>
+            </div>
+            <canvas id="tn-canvas" width="700" height="280" aria-label="T-N 曲线图"></canvas>
+            <div id="tn-output" class="result-box"></div>
+          </article>
 
-        <article class="panel fit-panel">
-          <h3>线性拟合曲线（自定义坐标）</h3>
-          <p class="hint">每行输入一个点，支持 x,y / x，y / x y（例如 0,1.2）。至少 2 个点后自动线性拟合。</p>
-          <div class="field-grid">
-            <label>坐标点列表
-              <textarea id="fit-points" rows="5" placeholder="0,1.2&#10;1000,1.0&#10;2000,0.7"></textarea>
-            </label>
-            <label>查询 x
-              <input id="fit-query-x" type="number" step="any" placeholder="例如 1500" />
-            </label>
-          </div>
-          <canvas id="fit-canvas" width="700" height="280" aria-label="线性拟合曲线图"></canvas>
-          <div id="fit-output" class="result-box"></div>
-        </article>
+          <article class="panel fit-panel">
+            <h3>线性拟合曲线（自定义坐标）</h3>
+            <p class="hint">每行输入一个点，支持 x,y / x，y / x y（例如 0,1.2）。至少 2 个点后自动线性拟合。</p>
+            <div class="field-grid">
+              <label>坐标点列表
+                <textarea id="fit-points" rows="5" placeholder="0,1.2&#10;1000,1.0&#10;2000,0.7"></textarea>
+              </label>
+              <label>查询 x
+                <input id="fit-query-x" type="number" step="any" placeholder="例如 1500" />
+              </label>
+            </div>
+            <canvas id="fit-canvas" width="700" height="280" aria-label="线性拟合曲线图"></canvas>
+            <div id="fit-output" class="result-box"></div>
+          </article>
+        </div>
       </section>
 
       <section id="display-panel" data-module-section class="module-card module-theme-b is-hidden">

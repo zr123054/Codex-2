@@ -216,11 +216,18 @@ function computeLinearFitCurve() {
 function drawFitCurve(points, queryX) {
   const canvas = els['fit-canvas'];
   const ctx = canvas.getContext('2d');
+  const css = getComputedStyle(document.body);
+  const canvasBg = css.getPropertyValue('--canvas-bg').trim() || '#ffffff';
+  const axis = css.getPropertyValue('--canvas-axis').trim() || '#cbd5e1';
+  const line = css.getPropertyValue('--canvas-line').trim() || '#10a37f';
+  const point = css.getPropertyValue('--canvas-point').trim() || '#f59e0b';
+  const query = css.getPropertyValue('--canvas-query').trim() || '#2563eb';
+  const muted = css.getPropertyValue('--muted').trim() || '#6b7280';
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#f8fbff';
+  ctx.fillStyle = canvasBg;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   const pad = 40;
-  ctx.strokeStyle = '#b9c8db';
+  ctx.strokeStyle = axis;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(pad, canvas.height - pad);
@@ -230,7 +237,7 @@ function drawFitCurve(points, queryX) {
   ctx.stroke();
 
   if (points.length < 2) {
-    ctx.fillStyle = '#93a1ba';
+    ctx.fillStyle = muted;
     ctx.fillText('输入坐标点后显示拟合曲线', pad + 24, canvas.height / 2);
     return;
   }
@@ -254,7 +261,7 @@ function drawFitCurve(points, queryX) {
   const mapY = (y) => canvas.height - pad - (y - minYView) / spanYView * (canvas.height - pad * 2);
 
   // draw points
-  ctx.fillStyle = '#f97316';
+  ctx.fillStyle = point;
   points.forEach(([x, y]) => {
     ctx.beginPath();
     ctx.arc(mapX(x), mapY(y), 4, 0, Math.PI * 2);
@@ -273,7 +280,7 @@ function drawFitCurve(points, queryX) {
     const b = (sy - k * sx) / n;
     const y1 = k * minX + b;
     const y2 = k * maxX + b;
-    ctx.strokeStyle = '#5b67ff';
+    ctx.strokeStyle = line;
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(mapX(minX), mapY(y1));
@@ -282,7 +289,7 @@ function drawFitCurve(points, queryX) {
     if (Number.isFinite(queryX)) {
       const qy = k * queryX + b;
       const clampedX = Math.min(maxXView, Math.max(minXView, queryX));
-      ctx.fillStyle = '#0ea5a1';
+      ctx.fillStyle = query;
       ctx.beginPath();
       ctx.arc(mapX(clampedX), mapY(qy), 5, 0, Math.PI * 2);
       ctx.fill();
@@ -321,12 +328,18 @@ function computeTnCurve() {
 function drawTnCurve(noLoad, stall, qSpeed, qTorque) {
   const canvas = els['tn-canvas'];
   const ctx = canvas.getContext('2d');
+  const css = getComputedStyle(document.body);
+  const canvasBg = css.getPropertyValue('--canvas-bg').trim() || '#ffffff';
+  const axis = css.getPropertyValue('--canvas-axis').trim() || '#cbd5e1';
+  const line = css.getPropertyValue('--canvas-line').trim() || '#10a37f';
+  const query = css.getPropertyValue('--canvas-query').trim() || '#2563eb';
+  const muted = css.getPropertyValue('--muted').trim() || '#6b7280';
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#f8fbff';
+  ctx.fillStyle = canvasBg;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   const pad = 40;
-  ctx.strokeStyle = '#b9c8db';
+  ctx.strokeStyle = axis;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(pad, canvas.height - pad);
@@ -335,13 +348,13 @@ function drawTnCurve(noLoad, stall, qSpeed, qTorque) {
   ctx.lineTo(pad, pad);
   ctx.stroke();
 
-  ctx.fillStyle = '#687994';
+  ctx.fillStyle = muted;
   ctx.font = '12px sans-serif';
   ctx.fillText('转速 rpm', canvas.width - pad - 46, canvas.height - 12);
   ctx.fillText('扭矩 N·m', 10, pad - 10);
 
   if (!validPositive(noLoad) || !validPositive(stall)) {
-    ctx.fillStyle = '#93a1ba';
+    ctx.fillStyle = muted;
     ctx.fillText('等待输入有效的空载转速与堵转扭矩', pad + 24, canvas.height / 2);
     return;
   }
@@ -351,19 +364,19 @@ function drawTnCurve(noLoad, stall, qSpeed, qTorque) {
   const x1 = canvas.width - pad;
   const y1 = pad;
 
-  ctx.strokeStyle = '#5b67ff';
+  ctx.strokeStyle = line;
   ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.moveTo(x0, y1);
   ctx.lineTo(x1, y0);
   ctx.stroke();
 
-  ctx.fillStyle = '#5b67ff';
+  ctx.fillStyle = line;
   ctx.fillText('0', x0 - 10, y0 + 18);
   ctx.fillText(`${format(noLoad, 0)}`, x1 - 40, y0 + 18);
   ctx.fillText(`${format(stall, 2)}`, 8, y1 + 4);
 
-  ctx.fillStyle = '#0ea5a1';
+  ctx.fillStyle = query;
   if (Number.isFinite(qSpeed)) {
     const clampedRatio = Math.max(0, Math.min(1, qSpeed / noLoad));
     const x = x0 + (x1 - x0) * clampedRatio;
