@@ -242,8 +242,11 @@ input:disabled { background: #eef2f7; color: #8ca0b8; }
   color: var(--muted);
   font-weight: 500;
   font-size: var(--font-sm);
-  white-space: nowrap;
-  overflow-x: auto;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 .note-box { background: linear-gradient(135deg, color-mix(in srgb, var(--cyan) 12%, transparent), color-mix(in srgb, var(--primary) 10%, transparent)); }
 

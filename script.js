@@ -236,7 +236,21 @@ function computeMotorPower() {
     return;
   }
   if (known.length > 2) {
-    setHtml('motor-power-output', `<strong>理论功率：</strong>${format(torque * 2 * Math.PI * speed / 60)} W`);
+    const computed = torque * 2 * Math.PI * speed / 60;
+    const diff = Math.abs(computed - power);
+    const tolerance = Math.max(0.01, Math.abs(computed) * 0.005);
+    if (diff > tolerance) {
+      els['motor-power'].value = format(computed);
+      setHtml(
+        'motor-power-output',
+        `已根据输入转速与扭矩重算并回填功率。<br><strong>扭矩：</strong>${format(torque)} N·m，<strong>转速：</strong>${format(speed, 0)} rpm，<strong>功率：</strong>${format(computed)} W`
+      );
+      return;
+    }
+    setHtml(
+      'motor-power-output',
+      `<strong>扭矩：</strong>${format(torque)} N·m，<strong>转速：</strong>${format(speed, 0)} rpm，<strong>功率：</strong>${format(computed)} W`
+    );
     return;
   }
   if (!Number.isFinite(power) && validPositive(torque) && validPositive(speed)) {
