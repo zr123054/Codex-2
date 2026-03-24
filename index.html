@@ -43,49 +43,49 @@
       </div>
     </section>
 
-    <section class="module-card selector-card">
-      <div class="module-header selector-header">
-        <div>
-          <h2>模块选择</h2>
-          <p>点击模块卡片后仅显示该模块；同一时间只展示 1 个模块。</p>
+    <div class="content-layout">
+      <section class="module-card selector-card">
+        <div class="module-header selector-header">
+          <div>
+            <h2>模块目录</h2>
+            <p>左侧选择模块，右侧查看详细计算内容。</p>
+          </div>
         </div>
-        
-      </div>
-      <div class="module-selector-grid">
-        <button class="module-toggle" data-target="motor-drive" draggable="true">
-          <span class="module-code">模块 A</span>
-          <strong>电机与传动</strong>
-          <small>功率、减速比、T-N 曲线</small>
-        </button>
-        <button class="module-toggle" data-target="display-panel" draggable="true">
-          <span class="module-code">模块 B</span>
-          <strong>显示屏计算</strong>
-          <small>PPI、长宽比、总像素</small>
-        </button>
-        <button class="module-toggle" data-target="power-battery" draggable="true">
-          <span class="module-code">模块 C</span>
-          <strong>功耗 / 电池</strong>
-          <small>功率、续航、Wh 换算</small>
-        </button>
-        <button class="module-toggle" data-target="unit-converter" draggable="true">
-          <span class="module-code">模块 D</span>
-          <strong>单位换算</strong>
-          <small>常见工程单位快速换算</small>
-        </button>
-        <button class="module-toggle" data-target="gear-ratio-calc" draggable="true">
-          <span class="module-code">模块 E</span>
-          <strong>传动减速比</strong>
-          <small>平行轴、行星、总减速比叠加</small>
-        </button>
-        <button class="module-toggle" data-target="spooling-core" draggable="true">
-          <span class="module-code">模块 F</span>
-          <strong>收线系统联动</strong>
-          <small>速度 ↔ 拉力 ↔ 电机参数</small>
-        </button>
-      </div>
-    </section>
+        <div class="module-selector-grid">
+          <button class="module-toggle" data-target="motor-drive" draggable="true">
+            <span class="module-code">模块 A</span>
+            <strong>电机与传动</strong>
+            <small>功率、减速比、T-N 曲线</small>
+          </button>
+          <button class="module-toggle" data-target="display-panel" draggable="true">
+            <span class="module-code">模块 B</span>
+            <strong>显示屏计算</strong>
+            <small>PPI、长宽比、总像素</small>
+          </button>
+          <button class="module-toggle" data-target="power-battery" draggable="true">
+            <span class="module-code">模块 C</span>
+            <strong>功耗 / 电池</strong>
+            <small>功率、续航、Wh 换算</small>
+          </button>
+          <button class="module-toggle" data-target="unit-converter" draggable="true">
+            <span class="module-code">模块 D</span>
+            <strong>单位换算</strong>
+            <small>常见工程单位快速换算</small>
+          </button>
+          <button class="module-toggle" data-target="gear-ratio-calc" draggable="true">
+            <span class="module-code">模块 E</span>
+            <strong>传动减速比</strong>
+            <small>平行轴、行星、总减速比叠加</small>
+          </button>
+          <button class="module-toggle" data-target="spooling-core" draggable="true">
+            <span class="module-code">模块 F</span>
+            <strong>收线系统联动</strong>
+            <small>速度 ↔ 拉力 ↔ 电机参数</small>
+          </button>
+        </div>
+      </section>
 
-    <div id="module-sections" class="module-sections">
+      <div id="module-sections" class="module-sections">
       <section id="motor-drive" data-module-section class="module-card module-theme-a is-hidden">
         <div class="module-header">
           <div>
@@ -460,6 +460,7 @@
           </div>
         </article>
       </section>
+      </div>
     </div>
   </main>
 

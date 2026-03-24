@@ -88,6 +88,12 @@ h1 { margin-bottom: 10px; font-size: 36px; line-height: 1.16; }
 
 .app-grid { display: grid; gap: 22px; padding: 0 40px 56px; }
 .module-sections { display: grid; gap: 22px; }
+.content-layout {
+  display: grid;
+  grid-template-columns: minmax(250px, 300px) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
 
 .module-card, .panel, .result-box, .note-box, .output-card, .module-toggle {
   border-radius: 24px;
@@ -118,17 +124,18 @@ h1 { margin-bottom: 10px; font-size: 36px; line-height: 1.16; }
 .badge.accent { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); }
 
 .selector-card { background: linear-gradient(135deg, color-mix(in srgb, var(--surface) 90%, white), color-mix(in srgb, var(--primary) 8%, var(--surface))); }
-.module-selector-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+.selector-card { position: sticky; top: 16px; }
+.module-selector-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
 .module-toggle {
-  padding: 18px 16px; text-align: left; cursor: pointer;
+  padding: 14px 13px; text-align: left; cursor: pointer;
   background: linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(246,248,255,0.94) 100%);
   transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
 }
 .module-toggle.dragging { opacity: .45; }
 .module-toggle:hover { transform: translateY(-2px); }
 .module-toggle strong, .module-toggle small, .module-toggle .module-code { display: block; }
-.module-toggle strong { margin: 8px 0 6px; font-size: 18px; color: var(--text); }
-.module-toggle small { color: var(--muted); }
+.module-toggle strong { margin: 6px 0 4px; font-size: 16px; color: var(--text); line-height: 1.35; }
+.module-toggle small { color: var(--muted); line-height: 1.35; font-size: 12px; }
 .module-code {
   width: fit-content; padding: 6px 10px; font-size: 12px; font-weight: 700;
   background: color-mix(in srgb, var(--primary) 16%, transparent); color: var(--primary-strong);
@@ -177,7 +184,10 @@ h1 { margin-bottom: 10px; font-size: 36px; line-height: 1.16; }
   font-size: 13px;
 }
 
-label { display: grid; gap: 6px; font-size: 14px; color: var(--muted); writing-mode: horizontal-tb; }
+label { display: grid; gap: 6px; font-size: 14px; color: var(--muted); writing-mode: horizontal-tb; line-height: 1.45; }
+h2 { line-height: 1.25; margin-bottom: 6px; }
+h3 { line-height: 1.3; margin-bottom: 10px; }
+p, .hint, .result-box, li { line-height: 1.6; }
 input, select, textarea {
   width: 100%; padding: 11px 12px; border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
   border-radius: 14px; background: rgba(255,255,255,0.96); color: var(--text);
@@ -296,6 +306,8 @@ body.theme-dark .primary-btn {
 }
 
 @media (max-width: 1260px) {
+  .content-layout { grid-template-columns: 1fr; }
+  .selector-card { position: static; }
   .module-selector-grid, .three-col, .converter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hero, .intro-strip, .selector-header { flex-direction: column; align-items: flex-start; }
   .curve-grid { grid-template-columns: 1fr; }
