@@ -6,6 +6,8 @@ let draggedModuleButton = null;
 const autoFillSuppressedFields = new Set();
 let branchNodeSeed = 1;
 let branchNodes = [];
+let branchFontSize = 18;
+let branchFontColor = '#1f2937';
 
 const themeColorPresets = {
   blue: { primary: '#3b82f6', strong: '#2563eb' },
@@ -84,6 +86,9 @@ function bindEvents() {
   els['theme-select'].addEventListener('change', applyThemeFromSelect);
   els['theme-color-select'].addEventListener('change', applyThemeColorFromSelect);
   els['accent-color-select'].addEventListener('change', applyAccentColorFromSelect);
+  els['branch-font-size']?.addEventListener('input', handleBranchStyleChange);
+  els['branch-font-color']?.addEventListener('input', handleBranchStyleChange);
+  els['branch-map-fullscreen']?.addEventListener('click', toggleBranchMapFullscreen);
   els['translate-mode']?.addEventListener('change', syncTranslateMode);
   els['translate-run']?.addEventListener('click', runTranslation);
   els['translate-image-run']?.addEventListener('click', runImageTranslation);
@@ -833,7 +838,24 @@ function initBranchMapModule() {
   resetBranchMapModule();
 }
 
+function handleBranchStyleChange() {
+  branchFontSize = Number.parseInt(els['branch-font-size']?.value || '18', 10) || 18;
+  branchFontColor = els['branch-font-color']?.value || '#1f2937';
+  refreshBranchMapSvg();
+}
+
+function toggleBranchMapFullscreen() {
+  const wrap = els['branch-map-canvas-wrap'];
+  const button = els['branch-map-fullscreen'];
+  if (!wrap || !button) return;
+  const isFullscreen = wrap.classList.toggle('is-fullscreen');
+  button.textContent = isFullscreen ? '还原' : '全屏';
+  refreshBranchMapSvg();
+}
+
 function resetBranchMapModule() {
+  branchFontSize = Number.parseInt(els['branch-font-size']?.value || '18', 10) || 18;
+  branchFontColor = els['branch-font-color']?.value || '#1f2937';
   branchNodeSeed = 1;
   branchNodes = [{
     id: `node-${branchNodeSeed}`,
@@ -853,7 +875,6 @@ function handleBranchEditorInput(event) {
   const node = branchNodes.find((item) => item.id === target.dataset.nodeId);
   if (!node) return;
   node.label = target.value || ' ';
-  refreshBranchMapSvg();
 }
 
 function handleBranchEditorKeydown(event) {
@@ -1012,7 +1033,7 @@ function refreshBranchMapSvg(focusNodeId = '') {
       return `
         <circle cx="${node.x}" cy="${node.y}" r="8" fill="white" stroke="${color}" stroke-width="3"></circle>
         <foreignObject x="${node.x + 12}" y="${node.y - 16}" width="230" height="34">
-          <input xmlns="http://www.w3.org/1999/xhtml" class="branch-editor-input branch-svg-input" data-node-id="${node.id}" value="${showLabel}" />
+          <input xmlns="http://www.w3.org/1999/xhtml" class="branch-editor-input branch-svg-input" style="font-size:${branchFontSize}px;color:${branchFontColor};" data-node-id="${node.id}" value="${showLabel}" />
         </foreignObject>
       `;
     })
@@ -1037,6 +1058,10 @@ function clearAllInputs() {
   if (els['translate-image-output']) setHtml('translate-image-output', '图片翻译结果显示在这里。');
   if (els['extract-image-output']) setHtml('extract-image-output', '图片文字提取结果显示在这里。');
   if (els['translate-image-file']) els['translate-image-file'].value = '';
+  if (els['branch-font-size']) els['branch-font-size'].value = '18';
+  if (els['branch-font-color']) els['branch-font-color'].value = '#1f2937';
+  if (els['branch-map-canvas-wrap']) els['branch-map-canvas-wrap'].classList.remove('is-fullscreen');
+  if (els['branch-map-fullscreen']) els['branch-map-fullscreen'].textContent = '全屏';
   resetBranchMapModule();
   autoFillSuppressedFields.clear();
   document.querySelector('input[name="spool-mode"][value="speed"]').checked = true;

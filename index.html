@@ -565,7 +565,16 @@
           <article class="panel">
             <h3>画框内直接编辑</h3>
             <p class="hint">直接在下方分支图节点文字框中输入：Enter 新建同级分支；Tab 新建下级分支；空行按 Backspace 删除当前分支。</p>
+            <div class="branch-style-controls">
+              <label>文本字号
+                <input id="branch-font-size" type="range" min="12" max="30" value="18" />
+              </label>
+              <label>文本颜色
+                <input id="branch-font-color" type="color" value="#1f2937" />
+              </label>
+            </div>
             <div id="branch-map-canvas-wrap" class="branch-map-wrap">
+              <button id="branch-map-fullscreen" type="button" class="secondary-btn branch-fullscreen-btn">全屏</button>
               <svg id="branch-map-svg" class="branch-map-svg" viewBox="0 0 1000 600" role="img" aria-label="分支图"></svg>
             </div>
           </article>
