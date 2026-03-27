@@ -84,7 +84,6 @@ function bindEvents() {
   els['theme-select'].addEventListener('change', applyThemeFromSelect);
   els['theme-color-select'].addEventListener('change', applyThemeColorFromSelect);
   els['accent-color-select'].addEventListener('change', applyAccentColorFromSelect);
-  els['branch-editor-tree']?.addEventListener('input', handleBranchEditorInput);
   els['translate-mode']?.addEventListener('change', syncTranslateMode);
   els['translate-run']?.addEventListener('click', runTranslation);
   els['translate-image-run']?.addEventListener('click', runImageTranslation);
@@ -185,6 +184,10 @@ function syncModuleVisibility(activatedId = null, isActivated = false) {
 function handleInput(event) {
   const target = event.target;
   if (!(target instanceof Element)) return;
+  if (target instanceof HTMLInputElement && target.classList.contains('branch-editor-input')) {
+    handleBranchEditorInput(event);
+    return;
+  }
   if (target instanceof HTMLInputElement && target.type === 'number') {
     if (target.value === '') {
       autoFillSuppressedFields.add(target.id);
@@ -837,33 +840,11 @@ function resetBranchMapModule() {
     parentId: null,
     label: '主状态界面'
   }];
-  refreshBranchMapEditorAndSvg();
+  refreshBranchMapEditorAndSvg(branchNodes[0].id);
 }
 
 function refreshBranchMapEditorAndSvg(focusNodeId = '') {
-  renderBranchEditorTree(focusNodeId);
-  refreshBranchMapSvg();
-}
-
-function renderBranchEditorTree(focusNodeId = '') {
-  const container = els['branch-editor-tree'];
-  if (!container) return;
-  const rows = getBranchNodesInPreorder().map((node) => {
-    const depth = getBranchDepth(node.id);
-    return `
-      <div class="branch-editor-row" style="padding-left:${depth * 24}px">
-        <input class="branch-editor-input" type="text" data-node-id="${node.id}" value="${escapeHtml(node.label)}" />
-      </div>
-    `;
-  }).join('');
-  container.innerHTML = rows;
-  const focusTarget = focusNodeId
-    ? container.querySelector(`.branch-editor-input[data-node-id="${focusNodeId}"]`)
-    : null;
-  if (focusTarget instanceof HTMLInputElement) {
-    focusTarget.focus();
-    focusTarget.setSelectionRange(focusTarget.value.length, focusTarget.value.length);
-  }
+  refreshBranchMapSvg(focusNodeId);
 }
 
 function handleBranchEditorInput(event) {
@@ -975,7 +956,7 @@ function getBranchDepth(nodeId) {
   return depth;
 }
 
-function refreshBranchMapSvg() {
+function refreshBranchMapSvg(focusNodeId = '') {
   const svg = els['branch-map-svg'];
   if (!svg || !branchNodes.length) return;
   const childrenMap = new Map();
@@ -1027,13 +1008,23 @@ function refreshBranchMapSvg() {
   const nodeMarkup = positioned
     .map((node, idx) => {
       const color = colorPalette[idx % colorPalette.length];
+      const showLabel = escapeHtml((node.label || '').trim() || '未命名');
       return `
         <circle cx="${node.x}" cy="${node.y}" r="8" fill="white" stroke="${color}" stroke-width="3"></circle>
-        <text x="${node.x + 16}" y="${node.y + 5}" fill="currentColor" font-size="18">${escapeHtml((node.label || '').trim() || '未命名')}</text>
+        <foreignObject x="${node.x + 12}" y="${node.y - 16}" width="230" height="34">
+          <input xmlns="http://www.w3.org/1999/xhtml" class="branch-editor-input branch-svg-input" data-node-id="${node.id}" value="${showLabel}" />
+        </foreignObject>
       `;
     })
     .join('');
   svg.innerHTML = `<g>${pathMarkup}${nodeMarkup}</g>`;
+  if (focusNodeId) {
+    const focusTarget = svg.querySelector(`.branch-svg-input[data-node-id="${focusNodeId}"]`);
+    if (focusTarget instanceof HTMLInputElement) {
+      focusTarget.focus();
+      focusTarget.setSelectionRange(focusTarget.value.length, focusTarget.value.length);
+    }
+  }
 }
 
 function clearAllInputs() {

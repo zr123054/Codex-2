@@ -231,18 +231,8 @@ textarea { resize: vertical; min-height: 110px; }
   overflow: auto;
   padding: 12px;
 }
-.branch-editor-tree {
-  min-height: 220px;
-  max-height: 320px;
-  overflow: auto;
-  display: grid;
-  gap: 8px;
-}
-.branch-editor-row {
-  display: block;
-}
 .branch-editor-input {
-  width: 100%;
+  width: 220px;
   min-height: 32px;
   background: transparent;
   border: none;
@@ -250,6 +240,9 @@ textarea { resize: vertical; min-height: 110px; }
   border-radius: 0;
   padding: 4px 2px;
   box-shadow: none !important;
+}
+.branch-svg-input:focus {
+  border-bottom-color: var(--accent);
 }
 .branch-map-svg {
   width: 100%;
