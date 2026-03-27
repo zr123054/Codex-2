@@ -294,7 +294,7 @@ textarea { resize: vertical; min-height: 110px; }
   height: 100%;
   list-style: none;
   overflow-y: auto;
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   overscroll-behavior: contain;
   scrollbar-width: none;
 }

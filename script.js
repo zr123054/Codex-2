@@ -16,6 +16,7 @@ let watchAtHome = true;
 let lastPickupPressAt = 0;
 let lastModePressAt = 0;
 let watchScrollSpeed = 1.8;
+let watchSyncLocked = false;
 
 const themeColorPresets = {
   blue: { primary: '#3b82f6', strong: '#2563eb' },
@@ -946,7 +947,7 @@ function navigateWatchMenuDown() {
   const total = current.children?.length || 0;
   if (!total) return;
   watchMenuSelectedIndex = (watchMenuSelectedIndex + 1) % total;
-  updateWatchMenuSelection(true, true);
+  updateWatchMenuSelection(true);
 }
 
 function confirmWatchMenuSelection() {
@@ -971,7 +972,7 @@ function triggerWatchMenuActive(row) {
   setTimeout(() => row.classList.remove('is-active'), 240);
 }
 
-function updateWatchMenuSelection(ensureVisible = false, smooth = false) {
+function updateWatchMenuSelection(ensureVisible = false) {
   const list = els['watch-menu-list'];
   if (!list) return;
   list.querySelectorAll('.watch-menu-item').forEach((item) => item.classList.remove('is-selected'));
@@ -981,11 +982,11 @@ function updateWatchMenuSelection(ensureVisible = false, smooth = false) {
     if (ensureVisible) {
       const nextTop = active.offsetTop - (list.clientHeight - active.clientHeight) / 2;
       const cappedTop = Math.max(0, nextTop);
-      if (smooth) {
-        list.scrollTo({ top: cappedTop, behavior: 'smooth' });
-      } else {
-        list.scrollTop = cappedTop;
-      }
+      watchSyncLocked = true;
+      list.scrollTop = cappedTop;
+      requestAnimationFrame(() => {
+        watchSyncLocked = false;
+      });
     }
   }
   updateWatchMenuDepthEffect();
@@ -1011,6 +1012,10 @@ function preventWatchModulePageScroll(event) {
 
 function handleWatchMenuListScroll() {
   if (watchAtHome) return;
+  if (watchSyncLocked) {
+    updateWatchMenuDepthEffect();
+    return;
+  }
   syncWatchMenuSelectionFromScroll();
   updateWatchMenuDepthEffect();
 }
