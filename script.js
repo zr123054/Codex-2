@@ -114,7 +114,7 @@ function bindEvents() {
   els['branch-font-color']?.addEventListener('input', handleBranchStyleChange);
   els['branch-map-fullscreen']?.addEventListener('click', toggleBranchMapFullscreen);
   els['watch-key-pickup']?.addEventListener('click', handlePickupTrigger);
-  els['watch-key-reset']?.addEventListener('click', navigateWatchMenuDown);
+  els['watch-key-reset']?.addEventListener('click', handleResetTrigger);
   els['watch-key-mode']?.addEventListener('click', handleModeTrigger);
   els['watch-menu-list']?.addEventListener('click', handleWatchMenuClick);
   els['watch-menu-list']?.addEventListener('scroll', handleWatchMenuListScroll);
@@ -1110,6 +1110,15 @@ function handleModeTrigger() {
     return;
   }
   confirmWatchMenuSelection();
+}
+
+function handleResetTrigger() {
+  if (watchAtHome) {
+    enterWatchMenuFromHome();
+    requestAnimationFrame(() => navigateWatchMenuDown());
+    return;
+  }
+  navigateWatchMenuDown();
 }
 
 function enterWatchMenuFromHome() {
