@@ -112,11 +112,12 @@ function bindEvents() {
   els['watch-key-reset']?.addEventListener('click', navigateWatchMenuDown);
   els['watch-key-mode']?.addEventListener('click', confirmWatchMenuSelection);
   els['watch-menu-list']?.addEventListener('click', handleWatchMenuClick);
-  els['watch-menu-list']?.addEventListener('scroll', updateWatchMenuDepthEffect);
+  els['watch-menu-list']?.addEventListener('scroll', handleWatchMenuListScroll);
   els['watch-menu-frame']?.addEventListener('wheel', handleWatchMenuWheel, { passive: false });
   els['watch-menu-list']?.addEventListener('wheel', handleWatchMenuWheel, { passive: false });
   els['watch-wheel']?.addEventListener('wheel', handleWatchMenuWheel, { passive: false });
   els['watch-menu-module']?.addEventListener('wheel', preventWatchModulePageScroll, { passive: false });
+  window.addEventListener('wheel', preventPageScrollWhenWatchActive, { passive: false });
   document.addEventListener('keydown', handleWatchMenuKeyboard);
   els['translate-mode']?.addEventListener('change', syncTranslateMode);
   els['translate-run']?.addEventListener('click', runTranslation);
@@ -886,7 +887,6 @@ function renderWatchMenu() {
     <li class="watch-menu-item" data-item-index="${index}">
       <span class="watch-menu-dot"></span>
       <span>${escapeHtml(item.label)}</span>
-      ${item.children ? '<span class="watch-menu-arrow">›</span>' : ''}
     </li>
   `).join('') || '<li class="watch-menu-item is-empty">无下级菜单</li>';
   path.textContent = watchMenuStack.map((node) => node.label).join(' / ');
@@ -968,11 +968,47 @@ function updateWatchMenuSelection(ensureVisible = false) {
 function handleWatchMenuWheel(event) {
   event.preventDefault();
   event.stopPropagation();
-  navigateWatchMenuDown();
+  const list = els['watch-menu-list'];
+  if (!list) return;
+  const delta = Number.isFinite(event.deltaY) ? event.deltaY : 36;
+  list.scrollBy({ top: delta, behavior: 'auto' });
+  syncWatchMenuSelectionFromScroll();
 }
 
 function preventWatchModulePageScroll(event) {
   event.preventDefault();
+}
+
+function preventPageScrollWhenWatchActive(event) {
+  const watchVisible = !document.getElementById('watch-menu-module')?.classList.contains('is-hidden');
+  if (!watchVisible) return;
+  event.preventDefault();
+}
+
+function handleWatchMenuListScroll() {
+  syncWatchMenuSelectionFromScroll();
+  updateWatchMenuDepthEffect();
+}
+
+function syncWatchMenuSelectionFromScroll() {
+  const list = els['watch-menu-list'];
+  if (!list) return;
+  const items = [...list.querySelectorAll('.watch-menu-item[data-item-index]')];
+  if (!items.length) return;
+  const centerY = list.scrollTop + list.clientHeight / 2;
+  let best = 0;
+  let bestDistance = Infinity;
+  items.forEach((item) => {
+    const idx = Number.parseInt(item.dataset.itemIndex || '0', 10);
+    const itemCenter = item.offsetTop + item.clientHeight / 2;
+    const d = Math.abs(itemCenter - centerY);
+    if (d < bestDistance) {
+      bestDistance = d;
+      best = idx;
+    }
+  });
+  watchMenuSelectedIndex = best;
+  updateWatchMenuSelection(false);
 }
 
 function handleWatchMenuKeyboard(event) {
@@ -1006,7 +1042,7 @@ function updateWatchMenuDepthEffect() {
     const rankDistance = Number.isFinite(index) ? Math.abs(index - watchMenuSelectedIndex) : 3;
     const rankBoost = rankDistance === 0 ? 0.1 : rankDistance === 1 ? 0.06 : rankDistance === 2 ? 0.03 : 0;
     const scale = 1.02 + rankBoost - distance * 0.1;
-    const opacity = 1 - distance * 0.45;
+    const opacity = 1 - distance * 0.18;
     item.style.transform = `scale(${scale.toFixed(3)})`;
     item.style.opacity = `${opacity.toFixed(3)}`;
   });
