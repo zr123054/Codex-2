@@ -83,10 +83,8 @@ function bindEvents() {
   els['theme-select'].addEventListener('change', applyThemeFromSelect);
   els['theme-color-select'].addEventListener('change', applyThemeColorFromSelect);
   els['accent-color-select'].addEventListener('change', applyAccentColorFromSelect);
-  els['branch-add-node']?.addEventListener('click', addBranchNodeFromInput);
-  els['branch-root-label']?.addEventListener('input', handleBranchRootInput);
-  els['branch-node-list']?.addEventListener('input', handleBranchNodeListInput);
-  els['branch-node-list']?.addEventListener('click', handleBranchNodeListClick);
+  els['branch-editor-tree']?.addEventListener('input', handleBranchEditorInput);
+  els['branch-editor-tree']?.addEventListener('keydown', handleBranchEditorKeydown);
   els['translate-mode']?.addEventListener('change', syncTranslateMode);
   els['translate-run']?.addEventListener('click', runTranslation);
   els['translate-image-run']?.addEventListener('click', runImageTranslation);
@@ -839,55 +837,100 @@ function resetBranchMapModule() {
     parentId: null,
     label: '主状态界面'
   }];
-  if (els['branch-root-label']) {
-    els['branch-root-label'].value = branchNodes[0].label;
+  refreshBranchMapEditorAndSvg();
+}
+
+function refreshBranchMapEditorAndSvg(focusNodeId = '') {
+  renderBranchEditorTree(focusNodeId);
+  refreshBranchMapSvg();
+}
+
+function renderBranchEditorTree(focusNodeId = '') {
+  const container = els['branch-editor-tree'];
+  if (!container) return;
+  const rows = getBranchNodesInPreorder().map((node) => {
+    const depth = getBranchDepth(node.id);
+    return `
+      <div class="branch-editor-row" style="padding-left:${depth * 24}px">
+        <input class="branch-editor-input" type="text" data-node-id="${node.id}" value="${escapeHtml(node.label)}" />
+      </div>
+    `;
+  }).join('');
+  container.innerHTML = rows;
+  const focusTarget = focusNodeId
+    ? container.querySelector(`.branch-editor-input[data-node-id="${focusNodeId}"]`)
+    : null;
+  if (focusTarget instanceof HTMLInputElement) {
+    focusTarget.focus();
+    focusTarget.setSelectionRange(focusTarget.value.length, focusTarget.value.length);
   }
-  if (els['branch-new-label']) {
-    els['branch-new-label'].value = '';
-  }
-  refreshBranchMapUI();
 }
 
-function handleBranchRootInput(event) {
-  if (!branchNodes.length) return;
-  branchNodes[0].label = event.target.value.trim() || '主状态界面';
-  refreshBranchMapUI();
-}
-
-function addBranchNodeFromInput() {
-  const parentId = els['branch-parent-select']?.value;
-  const labelRaw = els['branch-new-label']?.value || '';
-  const label = labelRaw.trim();
-  if (!parentId || !label) return;
-  branchNodeSeed += 1;
-  branchNodes.push({
-    id: `node-${branchNodeSeed}`,
-    parentId,
-    label
-  });
-  els['branch-new-label'].value = '';
-  refreshBranchMapUI();
-}
-
-function handleBranchNodeListInput(event) {
+function handleBranchEditorInput(event) {
   const target = event.target;
   if (!(target instanceof HTMLInputElement) || !target.dataset.nodeId) return;
   const node = branchNodes.find((item) => item.id === target.dataset.nodeId);
   if (!node) return;
-  node.label = target.value.trim() || (node.parentId ? '未命名分支' : '主状态界面');
+  node.label = target.value || ' ';
   refreshBranchMapSvg();
-  refreshBranchParentSelect();
 }
 
-function handleBranchNodeListClick(event) {
+function handleBranchEditorKeydown(event) {
   const target = event.target;
-  if (!(target instanceof HTMLElement) || !target.dataset.removeNodeId) return;
-  removeBranchNode(target.dataset.removeNodeId);
+  if (!(target instanceof HTMLInputElement) || !target.dataset.nodeId) return;
+  const nodeId = target.dataset.nodeId;
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    const createdId = insertSiblingNode(nodeId);
+    refreshBranchMapEditorAndSvg(createdId);
+    return;
+  }
+  if (event.key === 'Tab') {
+    event.preventDefault();
+    const createdId = insertChildNode(nodeId);
+    refreshBranchMapEditorAndSvg(createdId);
+    return;
+  }
+  if (event.key === 'Backspace' && target.value === '') {
+    const nextFocus = removeBranchNode(nodeId);
+    if (nextFocus) {
+      event.preventDefault();
+      refreshBranchMapEditorAndSvg(nextFocus);
+    }
+  }
+}
+
+function insertSiblingNode(nodeId) {
+  const node = branchNodes.find((item) => item.id === nodeId);
+  if (!node) return '';
+  branchNodeSeed += 1;
+  const newNode = {
+    id: `node-${branchNodeSeed}`,
+    parentId: node.parentId,
+    label: ''
+  };
+  branchNodes.push(newNode);
+  return newNode.id;
+}
+
+function insertChildNode(nodeId) {
+  const node = branchNodes.find((item) => item.id === nodeId);
+  if (!node) return '';
+  branchNodeSeed += 1;
+  const newNode = {
+    id: `node-${branchNodeSeed}`,
+    parentId: node.id,
+    label: ''
+  };
+  branchNodes.push(newNode);
+  return newNode.id;
 }
 
 function removeBranchNode(nodeId) {
   const rootId = branchNodes[0]?.id;
-  if (!nodeId || nodeId === rootId) return;
+  if (!nodeId || nodeId === rootId) return '';
+  const order = getBranchNodesInPreorder().map((node) => node.id);
+  const fallbackId = order[Math.max(0, order.indexOf(nodeId) - 1)] || rootId;
   const toDelete = new Set([nodeId]);
   let changed = true;
   while (changed) {
@@ -900,46 +943,25 @@ function removeBranchNode(nodeId) {
     });
   }
   branchNodes = branchNodes.filter((node) => !toDelete.has(node.id));
-  refreshBranchMapUI();
+  return fallbackId;
 }
 
-function refreshBranchMapUI() {
-  refreshBranchParentSelect();
-  renderBranchNodeList();
-  refreshBranchMapSvg();
-}
-
-function refreshBranchParentSelect() {
-  if (!els['branch-parent-select']) return;
-  const options = branchNodes.map((node) => {
-    const depth = getBranchDepth(node.id);
-    const indent = '—'.repeat(Math.max(0, depth));
-    return `<option value="${node.id}">${indent}${indent ? ' ' : ''}${escapeHtml(node.label)}</option>`;
-  }).join('');
-  const current = els['branch-parent-select'].value;
-  els['branch-parent-select'].innerHTML = options;
-  if (branchNodes.some((node) => node.id === current)) {
-    els['branch-parent-select'].value = current;
-  } else if (branchNodes[0]) {
-    els['branch-parent-select'].value = branchNodes[0].id;
+function getBranchNodesInPreorder() {
+  if (!branchNodes.length) return [];
+  const byParent = new Map();
+  branchNodes.forEach((node) => {
+    const key = node.parentId || '__root__';
+    if (!byParent.has(key)) byParent.set(key, []);
+    byParent.get(key).push(node);
+  });
+  const result = [];
+  function walk(node) {
+    result.push(node);
+    const children = byParent.get(node.id) || [];
+    children.forEach((child) => walk(child));
   }
-}
-
-function renderBranchNodeList() {
-  if (!els['branch-node-list']) return;
-  const rootId = branchNodes[0]?.id;
-  const rows = branchNodes.map((node) => {
-    const depth = getBranchDepth(node.id);
-    const canDelete = node.id !== rootId;
-    return `
-      <div class="branch-node-row">
-        <div class="branch-node-meta">L${depth}</div>
-        <input type="text" data-node-id="${node.id}" value="${escapeHtml(node.label)}" />
-        <button type="button" class="secondary-btn" data-remove-node-id="${node.id}" ${canDelete ? '' : 'disabled'}>删除</button>
-      </div>
-    `;
-  }).join('');
-  els['branch-node-list'].innerHTML = rows || '<div class="hint">暂无节点</div>';
+  walk(branchNodes[0]);
+  return result;
 }
 
 function getBranchDepth(nodeId) {
@@ -988,7 +1010,7 @@ function refreshBranchMapSvg() {
   const colorPalette = ['#16a34a', '#2563eb', '#ea580c', '#7c3aed', '#dc2626', '#0891b2', '#a3a300', '#d946ef', '#6b7280'];
   const positionedMap = new Map(positioned.map((node) => [node.id, node]));
 
-  const pathMarkup = branchNodes
+  const pathMarkup = getBranchNodesInPreorder()
     .filter((node) => node.parentId)
     .map((node, idx) => {
       const parent = positionedMap.get(node.parentId);
@@ -1006,7 +1028,7 @@ function refreshBranchMapSvg() {
       const color = colorPalette[idx % colorPalette.length];
       return `
         <circle cx="${node.x}" cy="${node.y}" r="8" fill="white" stroke="${color}" stroke-width="3"></circle>
-        <text x="${node.x + 16}" y="${node.y + 5}" fill="currentColor" font-size="18">${escapeHtml(node.label)}</text>
+        <text x="${node.x + 16}" y="${node.y + 5}" fill="currentColor" font-size="18">${escapeHtml((node.label || '').trim() || '未命名')}</text>
       `;
     })
     .join('');

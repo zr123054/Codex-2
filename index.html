@@ -561,27 +561,13 @@
           <span class="badge">结构规划</span>
         </div>
 
-        <div class="sub-grid two-col">
+        <div class="sub-grid">
           <article class="panel">
-            <h3>分支编辑</h3>
-            <label>根节点名称
-              <input id="branch-root-label" type="text" placeholder="例如：主状态界面 - 水深画面" />
-            </label>
-            <div class="branch-builder">
-              <label>父节点
-                <select id="branch-parent-select"></select>
-              </label>
-              <label>新增分支名称
-                <input id="branch-new-label" type="text" placeholder="例如：进入菜单" />
-              </label>
-              <button id="branch-add-node" type="button" class="primary-btn">新增分支</button>
+            <h3>画框内直接编辑</h3>
+            <p class="hint">在下方画框内直接编辑：Enter 新建同级分支；Tab 新建下级分支；空行按 Backspace 删除当前分支。</p>
+            <div class="branch-map-wrap">
+              <div id="branch-editor-tree" class="branch-editor-tree"></div>
             </div>
-            <div id="branch-node-list" class="branch-node-list"></div>
-          </article>
-
-          <article class="panel">
-            <h3>分支图预览</h3>
-            <p class="hint">节点名称修改、分支新增或删除后会立即更新图形。</p>
             <div id="branch-map-canvas-wrap" class="branch-map-wrap">
               <svg id="branch-map-svg" class="branch-map-svg" viewBox="0 0 1000 600" role="img" aria-label="分支图"></svg>
             </div>
