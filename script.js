@@ -12,6 +12,9 @@ let branchHistory = [];
 let branchFuture = [];
 let watchMenuStack = [];
 let watchMenuSelectedIndex = 0;
+let watchAtHome = true;
+let lastPickupPressAt = 0;
+let lastModePressAt = 0;
 
 const themeColorPresets = {
   blue: { primary: '#3b82f6', strong: '#2563eb' },
@@ -108,16 +111,15 @@ function bindEvents() {
   els['branch-font-size']?.addEventListener('input', handleBranchStyleChange);
   els['branch-font-color']?.addEventListener('input', handleBranchStyleChange);
   els['branch-map-fullscreen']?.addEventListener('click', toggleBranchMapFullscreen);
-  els['watch-key-pickup']?.addEventListener('click', navigateWatchMenuBack);
+  els['watch-key-pickup']?.addEventListener('click', handlePickupTrigger);
   els['watch-key-reset']?.addEventListener('click', navigateWatchMenuDown);
-  els['watch-key-mode']?.addEventListener('click', confirmWatchMenuSelection);
+  els['watch-key-mode']?.addEventListener('click', handleModeTrigger);
   els['watch-menu-list']?.addEventListener('click', handleWatchMenuClick);
   els['watch-menu-list']?.addEventListener('scroll', handleWatchMenuListScroll);
   els['watch-menu-frame']?.addEventListener('wheel', handleWatchMenuWheel, { passive: false });
   els['watch-menu-list']?.addEventListener('wheel', handleWatchMenuWheel, { passive: false });
   els['watch-wheel']?.addEventListener('wheel', handleWatchMenuWheel, { passive: false });
   els['watch-menu-module']?.addEventListener('wheel', preventWatchModulePageScroll, { passive: false });
-  window.addEventListener('wheel', preventPageScrollWhenWatchActive, { passive: false });
   document.addEventListener('keydown', handleWatchMenuKeyboard);
   els['translate-mode']?.addEventListener('change', syncTranslateMode);
   els['translate-run']?.addEventListener('click', runTranslation);
@@ -214,8 +216,6 @@ function syncModuleVisibility(activatedId = null, isActivated = false) {
       container.prepend(activatedSection);
     }
   }
-  const watchVisible = !document.getElementById('watch-menu-module')?.classList.contains('is-hidden');
-  document.body.classList.toggle('no-page-scroll', Boolean(watchVisible));
 }
 
 function handleInput(event) {
@@ -869,6 +869,7 @@ function createOutputCard(label, value, unit) {
 function initWatchMenuModule() {
   watchMenuStack = [watchMenuTree];
   watchMenuSelectedIndex = 0;
+  watchAtHome = true;
   renderWatchMenu();
 }
 
@@ -880,7 +881,15 @@ function renderWatchMenu() {
   const list = els['watch-menu-list'];
   const path = els['watch-menu-path'];
   const backButton = els['watch-key-pickup'];
-  if (!list || !path || !backButton) return;
+  const home = els['watch-home-screen'];
+  if (!list || !path || !backButton || !home) return;
+  home.classList.toggle('is-hidden', !watchAtHome);
+  list.classList.toggle('is-hidden', watchAtHome);
+  if (watchAtHome) {
+    path.textContent = '主界面（同时按 PICK UP + MODE 进入菜单）';
+    backButton.disabled = false;
+    return;
+  }
   const current = getCurrentWatchMenuNode();
   const children = current.children || [];
   list.innerHTML = children.map((item, index) => `
@@ -916,6 +925,7 @@ function handleWatchMenuClick(event) {
 }
 
 function navigateWatchMenuBack() {
+  if (watchAtHome) return;
   if (watchMenuStack.length <= 1) return;
   watchMenuStack.pop();
   watchMenuSelectedIndex = 0;
@@ -923,6 +933,7 @@ function navigateWatchMenuBack() {
 }
 
 function navigateWatchMenuDown() {
+  if (watchAtHome) return;
   const current = getCurrentWatchMenuNode();
   const total = current.children?.length || 0;
   if (!total) return;
@@ -931,6 +942,7 @@ function navigateWatchMenuDown() {
 }
 
 function confirmWatchMenuSelection() {
+  if (watchAtHome) return;
   const list = els['watch-menu-list'];
   const current = getCurrentWatchMenuNode();
   const item = current.children?.[watchMenuSelectedIndex];
@@ -959,7 +971,8 @@ function updateWatchMenuSelection(ensureVisible = false) {
   if (active instanceof HTMLElement) {
     active.classList.add('is-selected');
     if (ensureVisible) {
-      active.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      const nextTop = active.offsetTop - (list.clientHeight - active.clientHeight) / 2;
+      list.scrollTop = Math.max(0, nextTop);
     }
   }
   updateWatchMenuDepthEffect();
@@ -968,6 +981,7 @@ function updateWatchMenuSelection(ensureVisible = false) {
 function handleWatchMenuWheel(event) {
   event.preventDefault();
   event.stopPropagation();
+  if (watchAtHome) return;
   const list = els['watch-menu-list'];
   if (!list) return;
   const delta = Number.isFinite(event.deltaY) ? event.deltaY : 36;
@@ -976,16 +990,13 @@ function handleWatchMenuWheel(event) {
 }
 
 function preventWatchModulePageScroll(event) {
-  event.preventDefault();
-}
-
-function preventPageScrollWhenWatchActive(event) {
-  const watchVisible = !document.getElementById('watch-menu-module')?.classList.contains('is-hidden');
-  if (!watchVisible) return;
+  const activeSection = document.querySelector('#watch-menu-module:not(.is-hidden)');
+  if (!activeSection) return;
   event.preventDefault();
 }
 
 function handleWatchMenuListScroll() {
+  if (watchAtHome) return;
   syncWatchMenuSelectionFromScroll();
   updateWatchMenuDepthEffect();
 }
@@ -1014,6 +1025,18 @@ function syncWatchMenuSelectionFromScroll() {
 function handleWatchMenuKeyboard(event) {
   const activeSection = document.querySelector('#watch-menu-module:not(.is-hidden)');
   if (!activeSection) return;
+  if (watchAtHome) {
+    if (event.key === '1') {
+      lastPickupPressAt = Date.now();
+    } else if (event.key === '3') {
+      lastModePressAt = Date.now();
+    }
+    if (Math.abs(lastPickupPressAt - lastModePressAt) <= 350) {
+      event.preventDefault();
+      enterWatchMenuFromHome();
+    }
+    return;
+  }
   if (event.key === '1') {
     event.preventDefault();
     navigateWatchMenuBack();
@@ -1046,6 +1069,31 @@ function updateWatchMenuDepthEffect() {
     item.style.transform = `scale(${scale.toFixed(3)})`;
     item.style.opacity = `${opacity.toFixed(3)}`;
   });
+}
+
+function handlePickupTrigger() {
+  if (watchAtHome) {
+    lastPickupPressAt = Date.now();
+    if (Math.abs(lastPickupPressAt - lastModePressAt) <= 350) enterWatchMenuFromHome();
+    return;
+  }
+  navigateWatchMenuBack();
+}
+
+function handleModeTrigger() {
+  if (watchAtHome) {
+    lastModePressAt = Date.now();
+    if (Math.abs(lastPickupPressAt - lastModePressAt) <= 350) enterWatchMenuFromHome();
+    return;
+  }
+  confirmWatchMenuSelection();
+}
+
+function enterWatchMenuFromHome() {
+  watchAtHome = false;
+  watchMenuStack = [watchMenuTree];
+  watchMenuSelectedIndex = 0;
+  renderWatchMenu();
 }
 
 function initBranchMapModule() {

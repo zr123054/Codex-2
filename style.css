@@ -55,9 +55,6 @@ body {
     radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 8%, transparent), transparent 26%),
     linear-gradient(180deg, color-mix(in srgb, var(--bg) 92%, white) 0%, var(--bg) 100%);
 }
-body.no-page-scroll {
-  overflow: hidden;
-}
 
 button, input, select, textarea { font: inherit; }
 h1, h2, h3, h4, p { margin-top: 0; }
@@ -300,6 +297,28 @@ textarea { resize: vertical; min-height: 110px; }
   scroll-behavior: smooth;
   overscroll-behavior: contain;
   scrollbar-width: none;
+}
+.watch-home-screen {
+  height: 100%;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  padding: 18px 12px 12px;
+  color: #f8fafc;
+}
+.watch-home-value {
+  display: grid;
+  place-items: center;
+  font-size: 96px;
+  font-weight: 500;
+  line-height: 1;
+}
+.watch-home-keys {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border-top: 1px solid rgba(255, 255, 255, 0.28);
+  padding-top: 10px;
+  font-size: 13px;
+  text-align: center;
 }
 .watch-menu-list::-webkit-scrollbar { display: none; }
 .watch-menu-item {
