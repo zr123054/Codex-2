@@ -943,6 +943,7 @@ function navigateWatchMenuBack() {
 
 function navigateWatchMenuDown() {
   if (watchAtHome) return;
+  syncWatchMenuSelectionFromScroll();
   const current = getCurrentWatchMenuNode();
   const total = current.children?.length || 0;
   if (!total) return;
@@ -980,8 +981,11 @@ function updateWatchMenuSelection(ensureVisible = false) {
   if (active instanceof HTMLElement) {
     active.classList.add('is-selected');
     if (ensureVisible) {
-      const nextTop = active.offsetTop - (list.clientHeight - active.clientHeight) / 2;
-      const cappedTop = Math.max(0, nextTop);
+      const listStyles = window.getComputedStyle(list);
+      const paddingTop = Number.parseFloat(listStyles.paddingTop || '0') || 0;
+      const maxTop = Math.max(0, list.scrollHeight - list.clientHeight);
+      const nextTop = active.offsetTop - paddingTop;
+      const cappedTop = Math.min(maxTop, Math.max(0, nextTop));
       watchSyncLocked = true;
       list.scrollTop = cappedTop;
       requestAnimationFrame(() => {
