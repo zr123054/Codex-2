@@ -224,6 +224,35 @@ textarea { resize: vertical; min-height: 110px; }
 .mini-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0; }
 #translate-image-output,
 #extract-image-output { white-space: pre-wrap; word-break: break-word; }
+.branch-builder { display: grid; gap: 10px; margin-top: 12px; }
+.branch-node-list { display: grid; gap: 8px; margin-top: 12px; max-height: 320px; overflow: auto; padding-right: 4px; }
+.branch-node-row {
+  display: grid;
+  grid-template-columns: 48px 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+.branch-node-meta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  min-height: 38px;
+  color: var(--muted);
+  font-size: var(--font-xs);
+}
+.branch-map-wrap {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface-soft);
+  overflow: auto;
+}
+.branch-map-svg {
+  width: 100%;
+  min-height: 520px;
+  display: block;
+}
 input:focus, select:focus, textarea:focus, button:focus {
   outline: none; border-color: color-mix(in srgb, var(--primary) 60%, transparent);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent);

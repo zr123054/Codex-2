@@ -4,6 +4,8 @@ const THEME_COLOR_KEY = 'hardware-tool-theme-color-v1';
 const ACCENT_COLOR_KEY = 'hardware-tool-accent-color-v1';
 let draggedModuleButton = null;
 const autoFillSuppressedFields = new Set();
+let branchNodeSeed = 1;
+let branchNodes = [];
 
 const themeColorPresets = {
   blue: { primary: '#3b82f6', strong: '#2563eb' },
@@ -52,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initDynamicInputs();
   initConverter();
   initSpoolMode();
+  initBranchMapModule();
   syncTranslateMode();
   bindEvents();
   refreshAll();
@@ -80,6 +83,10 @@ function bindEvents() {
   els['theme-select'].addEventListener('change', applyThemeFromSelect);
   els['theme-color-select'].addEventListener('change', applyThemeColorFromSelect);
   els['accent-color-select'].addEventListener('change', applyAccentColorFromSelect);
+  els['branch-add-node']?.addEventListener('click', addBranchNodeFromInput);
+  els['branch-root-label']?.addEventListener('input', handleBranchRootInput);
+  els['branch-node-list']?.addEventListener('input', handleBranchNodeListInput);
+  els['branch-node-list']?.addEventListener('click', handleBranchNodeListClick);
   els['translate-mode']?.addEventListener('change', syncTranslateMode);
   els['translate-run']?.addEventListener('click', runTranslation);
   els['translate-image-run']?.addEventListener('click', runImageTranslation);
@@ -821,6 +828,191 @@ function createOutputCard(label, value, unit) {
   return `<div class="output-card"><div class="label">${label}</div><div class="value">${Number.isFinite(value) ? `${format(value)} ${unit}` : '--'}</div></div>`;
 }
 
+function initBranchMapModule() {
+  resetBranchMapModule();
+}
+
+function resetBranchMapModule() {
+  branchNodeSeed = 1;
+  branchNodes = [{
+    id: `node-${branchNodeSeed}`,
+    parentId: null,
+    label: '主状态界面'
+  }];
+  if (els['branch-root-label']) {
+    els['branch-root-label'].value = branchNodes[0].label;
+  }
+  if (els['branch-new-label']) {
+    els['branch-new-label'].value = '';
+  }
+  refreshBranchMapUI();
+}
+
+function handleBranchRootInput(event) {
+  if (!branchNodes.length) return;
+  branchNodes[0].label = event.target.value.trim() || '主状态界面';
+  refreshBranchMapUI();
+}
+
+function addBranchNodeFromInput() {
+  const parentId = els['branch-parent-select']?.value;
+  const labelRaw = els['branch-new-label']?.value || '';
+  const label = labelRaw.trim();
+  if (!parentId || !label) return;
+  branchNodeSeed += 1;
+  branchNodes.push({
+    id: `node-${branchNodeSeed}`,
+    parentId,
+    label
+  });
+  els['branch-new-label'].value = '';
+  refreshBranchMapUI();
+}
+
+function handleBranchNodeListInput(event) {
+  const target = event.target;
+  if (!(target instanceof HTMLInputElement) || !target.dataset.nodeId) return;
+  const node = branchNodes.find((item) => item.id === target.dataset.nodeId);
+  if (!node) return;
+  node.label = target.value.trim() || (node.parentId ? '未命名分支' : '主状态界面');
+  refreshBranchMapSvg();
+  refreshBranchParentSelect();
+}
+
+function handleBranchNodeListClick(event) {
+  const target = event.target;
+  if (!(target instanceof HTMLElement) || !target.dataset.removeNodeId) return;
+  removeBranchNode(target.dataset.removeNodeId);
+}
+
+function removeBranchNode(nodeId) {
+  const rootId = branchNodes[0]?.id;
+  if (!nodeId || nodeId === rootId) return;
+  const toDelete = new Set([nodeId]);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    branchNodes.forEach((node) => {
+      if (node.parentId && toDelete.has(node.parentId) && !toDelete.has(node.id)) {
+        toDelete.add(node.id);
+        changed = true;
+      }
+    });
+  }
+  branchNodes = branchNodes.filter((node) => !toDelete.has(node.id));
+  refreshBranchMapUI();
+}
+
+function refreshBranchMapUI() {
+  refreshBranchParentSelect();
+  renderBranchNodeList();
+  refreshBranchMapSvg();
+}
+
+function refreshBranchParentSelect() {
+  if (!els['branch-parent-select']) return;
+  const options = branchNodes.map((node) => {
+    const depth = getBranchDepth(node.id);
+    const indent = '—'.repeat(Math.max(0, depth));
+    return `<option value="${node.id}">${indent}${indent ? ' ' : ''}${escapeHtml(node.label)}</option>`;
+  }).join('');
+  const current = els['branch-parent-select'].value;
+  els['branch-parent-select'].innerHTML = options;
+  if (branchNodes.some((node) => node.id === current)) {
+    els['branch-parent-select'].value = current;
+  } else if (branchNodes[0]) {
+    els['branch-parent-select'].value = branchNodes[0].id;
+  }
+}
+
+function renderBranchNodeList() {
+  if (!els['branch-node-list']) return;
+  const rootId = branchNodes[0]?.id;
+  const rows = branchNodes.map((node) => {
+    const depth = getBranchDepth(node.id);
+    const canDelete = node.id !== rootId;
+    return `
+      <div class="branch-node-row">
+        <div class="branch-node-meta">L${depth}</div>
+        <input type="text" data-node-id="${node.id}" value="${escapeHtml(node.label)}" />
+        <button type="button" class="secondary-btn" data-remove-node-id="${node.id}" ${canDelete ? '' : 'disabled'}>删除</button>
+      </div>
+    `;
+  }).join('');
+  els['branch-node-list'].innerHTML = rows || '<div class="hint">暂无节点</div>';
+}
+
+function getBranchDepth(nodeId) {
+  let depth = 0;
+  let current = branchNodes.find((item) => item.id === nodeId);
+  while (current && current.parentId) {
+    depth += 1;
+    current = branchNodes.find((item) => item.id === current.parentId);
+  }
+  return depth;
+}
+
+function refreshBranchMapSvg() {
+  const svg = els['branch-map-svg'];
+  if (!svg || !branchNodes.length) return;
+  const childrenMap = new Map();
+  branchNodes.forEach((node) => childrenMap.set(node.id, []));
+  branchNodes.forEach((node) => {
+    if (node.parentId && childrenMap.has(node.parentId)) {
+      childrenMap.get(node.parentId).push(node);
+    }
+  });
+  const root = branchNodes[0];
+  const positioned = [];
+  let yCursor = 70;
+
+  function layout(node, depth) {
+    const children = childrenMap.get(node.id) || [];
+    const x = 80 + depth * 220;
+    if (!children.length) {
+      const y = yCursor;
+      yCursor += 58;
+      positioned.push({ ...node, x, y, depth });
+      return y;
+    }
+    const childYs = children.map((child) => layout(child, depth + 1));
+    const y = (Math.min(...childYs) + Math.max(...childYs)) / 2;
+    positioned.push({ ...node, x, y, depth });
+    return y;
+  }
+
+  layout(root, 0);
+  const maxX = Math.max(...positioned.map((n) => n.x), 900) + 260;
+  const maxY = Math.max(...positioned.map((n) => n.y), 500) + 80;
+  svg.setAttribute('viewBox', `0 0 ${maxX} ${maxY}`);
+  const colorPalette = ['#16a34a', '#2563eb', '#ea580c', '#7c3aed', '#dc2626', '#0891b2', '#a3a300', '#d946ef', '#6b7280'];
+  const positionedMap = new Map(positioned.map((node) => [node.id, node]));
+
+  const pathMarkup = branchNodes
+    .filter((node) => node.parentId)
+    .map((node, idx) => {
+      const parent = positionedMap.get(node.parentId);
+      const child = positionedMap.get(node.id);
+      if (!parent || !child) return '';
+      const ctrlX1 = parent.x + 70;
+      const ctrlX2 = child.x - 70;
+      const color = colorPalette[idx % colorPalette.length];
+      return `<path d="M ${parent.x + 14} ${parent.y} C ${ctrlX1} ${parent.y}, ${ctrlX2} ${child.y}, ${child.x - 14} ${child.y}" stroke="${color}" stroke-width="3" fill="none" />`;
+    })
+    .join('');
+
+  const nodeMarkup = positioned
+    .map((node, idx) => {
+      const color = colorPalette[idx % colorPalette.length];
+      return `
+        <circle cx="${node.x}" cy="${node.y}" r="8" fill="white" stroke="${color}" stroke-width="3"></circle>
+        <text x="${node.x + 16}" y="${node.y + 5}" fill="currentColor" font-size="18">${escapeHtml(node.label)}</text>
+      `;
+    })
+    .join('');
+  svg.innerHTML = `<g>${pathMarkup}${nodeMarkup}</g>`;
+}
+
 function clearAllInputs() {
   document.querySelectorAll('input[type="number"]').forEach((input) => {
     input.value = '';
@@ -831,6 +1023,7 @@ function clearAllInputs() {
   if (els['translate-image-output']) setHtml('translate-image-output', '图片翻译结果显示在这里。');
   if (els['extract-image-output']) setHtml('extract-image-output', '图片文字提取结果显示在这里。');
   if (els['translate-image-file']) els['translate-image-file'].value = '';
+  resetBranchMapModule();
   autoFillSuppressedFields.clear();
   document.querySelector('input[name="spool-mode"][value="speed"]').checked = true;
   initSpoolMode();
