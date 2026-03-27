@@ -15,6 +15,7 @@ let watchMenuSelectedIndex = 0;
 let watchAtHome = true;
 let lastPickupPressAt = 0;
 let lastModePressAt = 0;
+let watchScrollSpeed = 1.8;
 
 const themeColorPresets = {
   blue: { primary: '#3b82f6', strong: '#2563eb' },
@@ -120,6 +121,7 @@ function bindEvents() {
   els['watch-menu-list']?.addEventListener('wheel', handleWatchMenuWheel, { passive: false });
   els['watch-wheel']?.addEventListener('wheel', handleWatchMenuWheel, { passive: false });
   els['watch-menu-module']?.addEventListener('wheel', preventWatchModulePageScroll, { passive: false });
+  els['watch-scroll-speed']?.addEventListener('input', handleWatchScrollSpeedChange);
   document.addEventListener('keydown', handleWatchMenuKeyboard);
   els['translate-mode']?.addEventListener('change', syncTranslateMode);
   els['translate-run']?.addEventListener('click', runTranslation);
@@ -867,6 +869,8 @@ function createOutputCard(label, value, unit) {
 }
 
 function initWatchMenuModule() {
+  watchScrollSpeed = Number.parseFloat(els['watch-scroll-speed']?.value || '1.8') || 1.8;
+  updateWatchSpeedLabel();
   watchMenuStack = [watchMenuTree];
   watchMenuSelectedIndex = 0;
   watchAtHome = true;
@@ -926,7 +930,11 @@ function handleWatchMenuClick(event) {
 
 function navigateWatchMenuBack() {
   if (watchAtHome) return;
-  if (watchMenuStack.length <= 1) return;
+  if (watchMenuStack.length <= 1) {
+    watchAtHome = true;
+    renderWatchMenu();
+    return;
+  }
   watchMenuStack.pop();
   watchMenuSelectedIndex = 0;
   renderWatchMenu();
@@ -938,7 +946,7 @@ function navigateWatchMenuDown() {
   const total = current.children?.length || 0;
   if (!total) return;
   watchMenuSelectedIndex = (watchMenuSelectedIndex + 1) % total;
-  updateWatchMenuSelection(true);
+  updateWatchMenuSelection(true, true);
 }
 
 function confirmWatchMenuSelection() {
@@ -963,7 +971,7 @@ function triggerWatchMenuActive(row) {
   setTimeout(() => row.classList.remove('is-active'), 240);
 }
 
-function updateWatchMenuSelection(ensureVisible = false) {
+function updateWatchMenuSelection(ensureVisible = false, smooth = false) {
   const list = els['watch-menu-list'];
   if (!list) return;
   list.querySelectorAll('.watch-menu-item').forEach((item) => item.classList.remove('is-selected'));
@@ -972,7 +980,12 @@ function updateWatchMenuSelection(ensureVisible = false) {
     active.classList.add('is-selected');
     if (ensureVisible) {
       const nextTop = active.offsetTop - (list.clientHeight - active.clientHeight) / 2;
-      list.scrollTop = Math.max(0, nextTop);
+      const cappedTop = Math.max(0, nextTop);
+      if (smooth) {
+        list.scrollTo({ top: cappedTop, behavior: 'smooth' });
+      } else {
+        list.scrollTop = cappedTop;
+      }
     }
   }
   updateWatchMenuDepthEffect();
@@ -984,7 +997,8 @@ function handleWatchMenuWheel(event) {
   if (watchAtHome) return;
   const list = els['watch-menu-list'];
   if (!list) return;
-  const delta = Number.isFinite(event.deltaY) ? event.deltaY : 36;
+  const deltaBase = Number.isFinite(event.deltaY) ? event.deltaY : 36;
+  const delta = deltaBase * watchScrollSpeed;
   list.scrollBy({ top: delta, behavior: 'auto' });
   syncWatchMenuSelectionFromScroll();
 }
@@ -1063,9 +1077,9 @@ function updateWatchMenuDepthEffect() {
     const itemCenter = top + item.clientHeight / 2;
     const distance = Math.min(1, Math.abs(itemCenter - centerY) / (list.clientHeight / 2 || 1));
     const rankDistance = Number.isFinite(index) ? Math.abs(index - watchMenuSelectedIndex) : 3;
-    const rankBoost = rankDistance === 0 ? 0.1 : rankDistance === 1 ? 0.06 : rankDistance === 2 ? 0.03 : 0;
-    const scale = 1.02 + rankBoost - distance * 0.1;
-    const opacity = 1 - distance * 0.18;
+    const rankBoost = rankDistance === 0 ? 0.19 : rankDistance === 1 ? 0.13 : rankDistance === 2 ? 0.08 : 0.03;
+    const scale = 1.03 + rankBoost - distance * 0.08;
+    const opacity = 1 - distance * 0.12;
     item.style.transform = `scale(${scale.toFixed(3)})`;
     item.style.opacity = `${opacity.toFixed(3)}`;
   });
@@ -1094,6 +1108,16 @@ function enterWatchMenuFromHome() {
   watchMenuStack = [watchMenuTree];
   watchMenuSelectedIndex = 0;
   renderWatchMenu();
+}
+
+function handleWatchScrollSpeedChange() {
+  watchScrollSpeed = Number.parseFloat(els['watch-scroll-speed']?.value || '1.8') || 1.8;
+  updateWatchSpeedLabel();
+}
+
+function updateWatchSpeedLabel() {
+  if (!els['watch-scroll-speed-value']) return;
+  els['watch-scroll-speed-value'].textContent = `${watchScrollSpeed.toFixed(1)}x`;
 }
 
 function initBranchMapModule() {
