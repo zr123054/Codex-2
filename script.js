@@ -116,6 +116,7 @@ function bindEvents() {
   els['watch-menu-frame']?.addEventListener('wheel', handleWatchMenuWheel, { passive: false });
   els['watch-menu-list']?.addEventListener('wheel', handleWatchMenuWheel, { passive: false });
   els['watch-wheel']?.addEventListener('wheel', handleWatchMenuWheel, { passive: false });
+  els['watch-menu-module']?.addEventListener('wheel', preventWatchModulePageScroll, { passive: false });
   document.addEventListener('keydown', handleWatchMenuKeyboard);
   els['translate-mode']?.addEventListener('change', syncTranslateMode);
   els['translate-run']?.addEventListener('click', runTranslation);
@@ -212,6 +213,8 @@ function syncModuleVisibility(activatedId = null, isActivated = false) {
       container.prepend(activatedSection);
     }
   }
+  const watchVisible = !document.getElementById('watch-menu-module')?.classList.contains('is-hidden');
+  document.body.classList.toggle('no-page-scroll', Boolean(watchVisible));
 }
 
 function handleInput(event) {
@@ -964,7 +967,12 @@ function updateWatchMenuSelection(ensureVisible = false) {
 
 function handleWatchMenuWheel(event) {
   event.preventDefault();
+  event.stopPropagation();
   navigateWatchMenuDown();
+}
+
+function preventWatchModulePageScroll(event) {
+  event.preventDefault();
 }
 
 function handleWatchMenuKeyboard(event) {
@@ -991,10 +999,13 @@ function updateWatchMenuDepthEffect() {
   if (!list) return;
   const centerY = list.scrollTop + list.clientHeight / 2;
   list.querySelectorAll('.watch-menu-item').forEach((item) => {
+    const index = Number.parseInt(item.dataset.itemIndex || '-1', 10);
     const top = item.offsetTop;
     const itemCenter = top + item.clientHeight / 2;
     const distance = Math.min(1, Math.abs(itemCenter - centerY) / (list.clientHeight / 2 || 1));
-    const scale = 1 - distance * 0.18;
+    const rankDistance = Number.isFinite(index) ? Math.abs(index - watchMenuSelectedIndex) : 3;
+    const rankBoost = rankDistance === 0 ? 0.1 : rankDistance === 1 ? 0.06 : rankDistance === 2 ? 0.03 : 0;
+    const scale = 1.02 + rankBoost - distance * 0.1;
     const opacity = 1 - distance * 0.45;
     item.style.transform = `scale(${scale.toFixed(3)})`;
     item.style.opacity = `${opacity.toFixed(3)}`;

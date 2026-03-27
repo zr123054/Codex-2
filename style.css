@@ -55,6 +55,9 @@ body {
     radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 8%, transparent), transparent 26%),
     linear-gradient(180deg, color-mix(in srgb, var(--bg) 92%, white) 0%, var(--bg) 100%);
 }
+body.no-page-scroll {
+  overflow: hidden;
+}
 
 button, input, select, textarea { font: inherit; }
 h1, h2, h3, h4, p { margin-top: 0; }
