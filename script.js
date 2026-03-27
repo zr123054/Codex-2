@@ -70,6 +70,7 @@ function bindEvents() {
   document.addEventListener('input', handleInput);
   document.addEventListener('change', handleInput);
   document.addEventListener('focusout', handleInput);
+  document.addEventListener('keydown', handleBranchEditorKeydown, true);
   document.addEventListener('click', handleDynamicActions);
   document.querySelectorAll('.module-toggle').forEach((button) => {
     button.addEventListener('click', () => toggleModule(button.dataset.target));
@@ -84,7 +85,6 @@ function bindEvents() {
   els['theme-color-select'].addEventListener('change', applyThemeColorFromSelect);
   els['accent-color-select'].addEventListener('change', applyAccentColorFromSelect);
   els['branch-editor-tree']?.addEventListener('input', handleBranchEditorInput);
-  els['branch-editor-tree']?.addEventListener('keydown', handleBranchEditorKeydown);
   els['translate-mode']?.addEventListener('change', syncTranslateMode);
   els['translate-run']?.addEventListener('click', runTranslation);
   els['translate-image-run']?.addEventListener('click', runImageTranslation);
@@ -876,8 +876,9 @@ function handleBranchEditorInput(event) {
 }
 
 function handleBranchEditorKeydown(event) {
-  const target = event.target;
-  if (!(target instanceof HTMLInputElement) || !target.dataset.nodeId) return;
+  const active = event.target instanceof HTMLElement ? event.target : document.activeElement;
+  const target = active instanceof HTMLInputElement ? active : null;
+  if (!target || !target.classList.contains('branch-editor-input') || !target.dataset.nodeId) return;
   const nodeId = target.dataset.nodeId;
   if (event.key === 'Enter') {
     event.preventDefault();

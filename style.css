@@ -243,7 +243,13 @@ textarea { resize: vertical; min-height: 110px; }
 }
 .branch-editor-input {
   width: 100%;
-  min-height: 38px;
+  min-height: 32px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  border-radius: 0;
+  padding: 4px 2px;
+  box-shadow: none !important;
 }
 .branch-map-svg {
   width: 100%;
