@@ -8,6 +8,8 @@ let branchNodeSeed = 1;
 let branchNodes = [];
 let branchFontSize = 18;
 let branchFontColor = '#1f2937';
+let branchHistory = [];
+let branchFuture = [];
 
 const themeColorPresets = {
   blue: { primary: '#3b82f6', strong: '#2563eb' },
@@ -862,7 +864,32 @@ function resetBranchMapModule() {
     parentId: null,
     label: '主状态界面'
   }];
+  branchHistory = [createBranchSnapshot()];
+  branchFuture = [];
   refreshBranchMapEditorAndSvg(branchNodes[0].id);
+}
+
+function createBranchSnapshot() {
+  return {
+    branchNodeSeed,
+    branchNodes: branchNodes.map((node) => ({ ...node }))
+  };
+}
+
+function restoreBranchSnapshot(snapshot, focusNodeId = '') {
+  if (!snapshot) return;
+  branchNodeSeed = snapshot.branchNodeSeed;
+  branchNodes = snapshot.branchNodes.map((node) => ({ ...node }));
+  refreshBranchMapEditorAndSvg(focusNodeId || branchNodes[0]?.id || '');
+}
+
+function pushBranchHistory() {
+  const snap = createBranchSnapshot();
+  const last = branchHistory.at(-1);
+  if (last && JSON.stringify(last) === JSON.stringify(snap)) return;
+  branchHistory.push(snap);
+  if (branchHistory.length > 200) branchHistory.shift();
+  branchFuture = [];
 }
 
 function refreshBranchMapEditorAndSvg(focusNodeId = '') {
@@ -875,6 +902,7 @@ function handleBranchEditorInput(event) {
   const node = branchNodes.find((item) => item.id === target.dataset.nodeId);
   if (!node) return;
   node.label = target.value || ' ';
+  pushBranchHistory();
 }
 
 function handleBranchEditorKeydown(event) {
@@ -882,15 +910,30 @@ function handleBranchEditorKeydown(event) {
   const target = active instanceof HTMLInputElement ? active : null;
   if (!target || !target.classList.contains('branch-editor-input') || !target.dataset.nodeId) return;
   const nodeId = target.dataset.nodeId;
+  if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === 'z') {
+    event.preventDefault();
+    undoBranchChange();
+    return;
+  }
+  if (
+    (event.ctrlKey || event.metaKey) &&
+    (event.key.toLowerCase() === 'y' || (event.shiftKey && event.key.toLowerCase() === 'z'))
+  ) {
+    event.preventDefault();
+    redoBranchChange();
+    return;
+  }
   if (event.key === 'Enter') {
     event.preventDefault();
     const createdId = insertSiblingNode(nodeId);
+    pushBranchHistory();
     refreshBranchMapEditorAndSvg(createdId);
     return;
   }
   if (event.key === 'Tab') {
     event.preventDefault();
     const createdId = insertChildNode(nodeId);
+    pushBranchHistory();
     refreshBranchMapEditorAndSvg(createdId);
     return;
   }
@@ -898,9 +941,29 @@ function handleBranchEditorKeydown(event) {
     const nextFocus = removeBranchNode(nodeId);
     if (nextFocus) {
       event.preventDefault();
+      pushBranchHistory();
       refreshBranchMapEditorAndSvg(nextFocus);
     }
   }
+}
+
+function undoBranchChange() {
+  if (branchHistory.length <= 1) return;
+  const current = branchHistory.pop();
+  if (current) branchFuture.push(current);
+  const prev = branchHistory.at(-1);
+  restoreBranchSnapshot(prev);
+}
+
+function redoBranchChange() {
+  if (!branchFuture.length) return;
+  const next = branchFuture.pop();
+  if (!next) return;
+  branchHistory.push({
+    branchNodeSeed: next.branchNodeSeed,
+    branchNodes: next.branchNodes.map((node) => ({ ...node }))
+  });
+  restoreBranchSnapshot(next);
 }
 
 function insertSiblingNode(nodeId) {
@@ -980,6 +1043,7 @@ function getBranchDepth(nodeId) {
 function refreshBranchMapSvg(focusNodeId = '') {
   const svg = els['branch-map-svg'];
   if (!svg || !branchNodes.length) return;
+  const orderedNodes = getBranchNodesInPreorder();
   const childrenMap = new Map();
   branchNodes.forEach((node) => childrenMap.set(node.id, []));
   branchNodes.forEach((node) => {
@@ -990,24 +1054,39 @@ function refreshBranchMapSvg(focusNodeId = '') {
   const root = branchNodes[0];
   const positioned = [];
   let yCursor = 70;
+  const depthWidthMap = new Map();
+  orderedNodes.forEach((node) => {
+    const depth = getBranchDepth(node.id);
+    const width = getBranchLabelWidth(node.label);
+    depthWidthMap.set(depth, Math.max(depthWidthMap.get(depth) || 0, width));
+  });
+
+  function getDepthX(depth) {
+    let x = 80;
+    for (let d = 0; d < depth; d += 1) {
+      x += (depthWidthMap.get(d) || 180) + 120;
+    }
+    return x;
+  }
 
   function layout(node, depth) {
     const children = childrenMap.get(node.id) || [];
-    const x = 80 + depth * 220;
+    const x = getDepthX(depth);
+    const nodeWidth = getBranchLabelWidth(node.label);
     if (!children.length) {
       const y = yCursor;
       yCursor += 58;
-      positioned.push({ ...node, x, y, depth });
+      positioned.push({ ...node, x, y, depth, nodeWidth });
       return y;
     }
     const childYs = children.map((child) => layout(child, depth + 1));
     const y = (Math.min(...childYs) + Math.max(...childYs)) / 2;
-    positioned.push({ ...node, x, y, depth });
+    positioned.push({ ...node, x, y, depth, nodeWidth });
     return y;
   }
 
   layout(root, 0);
-  const maxX = Math.max(...positioned.map((n) => n.x), 900) + 260;
+  const maxX = Math.max(...positioned.map((n) => n.x + n.nodeWidth), 900) + 220;
   const maxY = Math.max(...positioned.map((n) => n.y), 500) + 80;
   svg.setAttribute('viewBox', `0 0 ${maxX} ${maxY}`);
   const colorPalette = ['#16a34a', '#2563eb', '#ea580c', '#7c3aed', '#dc2626', '#0891b2', '#a3a300', '#d946ef', '#6b7280'];
@@ -1026,19 +1105,28 @@ function refreshBranchMapSvg(focusNodeId = '') {
     })
     .join('');
 
+  const tailMarkup = positioned
+    .map((node, idx) => {
+      const color = colorPalette[idx % colorPalette.length];
+      const x1 = node.x + 14;
+      const x2 = x1 + node.nodeWidth;
+      return `<line x1="${x1}" y1="${node.y}" x2="${x2}" y2="${node.y}" stroke="${color}" stroke-width="3" />`;
+    })
+    .join('');
+
   const nodeMarkup = positioned
     .map((node, idx) => {
       const color = colorPalette[idx % colorPalette.length];
       const showLabel = escapeHtml((node.label || '').trim() || '未命名');
       return `
         <circle cx="${node.x}" cy="${node.y}" r="8" fill="white" stroke="${color}" stroke-width="3"></circle>
-        <foreignObject x="${node.x + 12}" y="${node.y - 16}" width="230" height="34">
+        <foreignObject x="${node.x + 16}" y="${node.y - 16}" width="${node.nodeWidth + 8}" height="34">
           <input xmlns="http://www.w3.org/1999/xhtml" class="branch-editor-input branch-svg-input" style="font-size:${branchFontSize}px;color:${branchFontColor};" data-node-id="${node.id}" value="${showLabel}" />
         </foreignObject>
       `;
     })
     .join('');
-  svg.innerHTML = `<g>${pathMarkup}${nodeMarkup}</g>`;
+  svg.innerHTML = `<g>${pathMarkup}${tailMarkup}${nodeMarkup}</g>`;
   if (focusNodeId) {
     const focusTarget = svg.querySelector(`.branch-svg-input[data-node-id="${focusNodeId}"]`);
     if (focusTarget instanceof HTMLInputElement) {
@@ -1046,6 +1134,11 @@ function refreshBranchMapSvg(focusNodeId = '') {
       focusTarget.setSelectionRange(focusTarget.value.length, focusTarget.value.length);
     }
   }
+}
+
+function getBranchLabelWidth(label) {
+  const text = (label || '').trim() || '未命名';
+  return Math.max(80, Math.ceil(text.length * (branchFontSize * 0.65) + 26));
 }
 
 function clearAllInputs() {

@@ -255,13 +255,9 @@ textarea { resize: vertical; min-height: 110px; }
   min-height: 32px;
   background: transparent;
   border: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
   border-radius: 0;
   padding: 4px 2px;
   box-shadow: none !important;
-}
-.branch-svg-input:focus {
-  border-bottom-color: var(--accent);
 }
 .branch-map-svg {
   width: 100%;
