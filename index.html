@@ -107,6 +107,11 @@
             <strong>分支图实时生成</strong>
             <small>自由新增/删除任意等级分支</small>
           </button>
+          <button class="module-toggle" data-target="watch-menu-module" draggable="true">
+            <span class="module-code">模块 I</span>
+            <strong>240×240 滚动菜单</strong>
+            <small>层级菜单 / 丝滑滚动</small>
+          </button>
         </div>
       </section>
 
@@ -576,6 +581,27 @@
             <div id="branch-map-canvas-wrap" class="branch-map-wrap">
               <button id="branch-map-fullscreen" type="button" class="secondary-btn branch-fullscreen-btn">全屏</button>
               <svg id="branch-map-svg" class="branch-map-svg" viewBox="0 0 1000 600" role="img" aria-label="分支图"></svg>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="watch-menu-module" data-module-section class="module-card module-theme-a is-hidden">
+        <div class="module-header">
+          <div>
+            <h2>模块 I：240×240 层级滚动菜单</h2>
+            <p>根据分支层级生成 Apple Watch 风格列表菜单，固定 240×240 显示区域。</p>
+          </div>
+          <span class="badge accent">交互原型</span>
+        </div>
+        <div class="sub-grid">
+          <article class="panel">
+            <div class="watch-menu-toolbar">
+              <button id="watch-menu-back" type="button" class="secondary-btn">返回上级</button>
+              <div id="watch-menu-path" class="watch-menu-path">主状态界面</div>
+            </div>
+            <div class="watch-menu-frame">
+              <ul id="watch-menu-list" class="watch-menu-list"></ul>
             </div>
           </article>
         </div>
