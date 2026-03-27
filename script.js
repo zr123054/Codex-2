@@ -11,6 +11,7 @@ let branchFontColor = '#1f2937';
 let branchHistory = [];
 let branchFuture = [];
 let watchMenuStack = [];
+let watchMenuSelectedIndex = 0;
 
 const themeColorPresets = {
   blue: { primary: '#3b82f6', strong: '#2563eb' },
@@ -51,21 +52,15 @@ const translateLanguageNames = {
 const watchMenuTree = {
   label: '主状态界面',
   children: [
-    { label: '进入菜单', children: [
-      { label: '上线计数', children: [{ label: 'P1 线长计数' }, { label: 'P2 收线计数' }, { label: 'P3 出线计数' }] },
-      { label: '瞬动 (PICK UP)', children: [{ label: '开/关（默认开启）' }, { label: '开启后', children: [{ label: '短按调整' }, { label: '长按调整' }] }] },
-      { label: '船舷停止', children: [{ label: '长度可调' }] },
-      { label: '智能模式（A1 引入）', children: [{ label: '开/关（默认关闭）' }, { label: '开启后，智能模式调节' }] },
-      { label: '定速卷线', children: [{ label: '开/关（默认关闭）' }, { label: '开启后，速度可调' }] },
-      { label: '水层记忆', children: [{ label: '开/关（默认关闭）' }, { label: '开启后', children: [{ label: '手动记忆' }, { label: '设定水层' }, { label: '触底停止' }] }] },
-      { label: '副计数器', children: [{ label: '开/关（默认关闭）' }, { label: '开启后', children: [{ label: '底部计数器' }, { label: '收线速度' }, { label: '收线用时' }] }] },
-      { label: '蓝牙', children: [{ label: '开/关（默认关闭）' }, { label: '开启后', children: [{ label: '配对手机' }, { label: '配对 E03' }] }] },
-      { label: '设置', children: [{ label: '实时记录' }, { label: '语言设置' }, { label: '单位设置' }, { label: '屏幕亮度', children: [{ label: '亮度调节' }] }] }
-    ] },
-    { label: 'PICK UP' },
-    { label: 'RESET' },
-    { label: 'MODE' },
-    { label: '油门开关' }
+    { label: '上线计数', children: [{ label: 'P1 线长计数' }, { label: 'P2 收线计数' }, { label: 'P3 出线计数' }] },
+    { label: '瞬动 (PICK UP)', children: [{ label: '开/关（默认开启）' }, { label: '开启后', children: [{ label: '短按调整' }, { label: '长按调整' }] }] },
+    { label: '船舷停止', children: [{ label: '长度可调' }] },
+    { label: '智能模式（A1 引入）', children: [{ label: '开/关（默认关闭）' }, { label: '开启后，智能模式调节' }] },
+    { label: '定速卷线', children: [{ label: '开/关（默认关闭）' }, { label: '开启后，速度可调' }] },
+    { label: '水层记忆', children: [{ label: '开/关（默认关闭）' }, { label: '开启后', children: [{ label: '手动记忆' }, { label: '设定水层' }, { label: '触底停止' }] }] },
+    { label: '副计数器', children: [{ label: '开/关（默认关闭）' }, { label: '开启后', children: [{ label: '底部计数器' }, { label: '收线速度' }, { label: '收线用时' }] }] },
+    { label: '蓝牙', children: [{ label: '开/关（默认关闭）' }, { label: '开启后', children: [{ label: '配对手机' }, { label: '配对 E03' }] }] },
+    { label: '设置', children: [{ label: '实时记录' }, { label: '语言设置' }, { label: '单位设置' }, { label: '屏幕亮度', children: [{ label: '亮度调节' }] }] }
   ]
 };
 
@@ -113,9 +108,15 @@ function bindEvents() {
   els['branch-font-size']?.addEventListener('input', handleBranchStyleChange);
   els['branch-font-color']?.addEventListener('input', handleBranchStyleChange);
   els['branch-map-fullscreen']?.addEventListener('click', toggleBranchMapFullscreen);
-  els['watch-menu-back']?.addEventListener('click', navigateWatchMenuBack);
+  els['watch-key-pickup']?.addEventListener('click', navigateWatchMenuBack);
+  els['watch-key-reset']?.addEventListener('click', navigateWatchMenuDown);
+  els['watch-key-mode']?.addEventListener('click', confirmWatchMenuSelection);
   els['watch-menu-list']?.addEventListener('click', handleWatchMenuClick);
   els['watch-menu-list']?.addEventListener('scroll', updateWatchMenuDepthEffect);
+  els['watch-menu-frame']?.addEventListener('wheel', handleWatchMenuWheel, { passive: false });
+  els['watch-menu-list']?.addEventListener('wheel', handleWatchMenuWheel, { passive: false });
+  els['watch-wheel']?.addEventListener('wheel', handleWatchMenuWheel, { passive: false });
+  document.addEventListener('keydown', handleWatchMenuKeyboard);
   els['translate-mode']?.addEventListener('change', syncTranslateMode);
   els['translate-run']?.addEventListener('click', runTranslation);
   els['translate-image-run']?.addEventListener('click', runImageTranslation);
@@ -863,6 +864,7 @@ function createOutputCard(label, value, unit) {
 
 function initWatchMenuModule() {
   watchMenuStack = [watchMenuTree];
+  watchMenuSelectedIndex = 0;
   renderWatchMenu();
 }
 
@@ -873,19 +875,22 @@ function getCurrentWatchMenuNode() {
 function renderWatchMenu() {
   const list = els['watch-menu-list'];
   const path = els['watch-menu-path'];
-  const backButton = els['watch-menu-back'];
+  const backButton = els['watch-key-pickup'];
   if (!list || !path || !backButton) return;
   const current = getCurrentWatchMenuNode();
   const children = current.children || [];
   list.innerHTML = children.map((item, index) => `
     <li class="watch-menu-item" data-item-index="${index}">
+      <span class="watch-menu-dot"></span>
       <span>${escapeHtml(item.label)}</span>
       ${item.children ? '<span class="watch-menu-arrow">›</span>' : ''}
     </li>
   `).join('') || '<li class="watch-menu-item is-empty">无下级菜单</li>';
   path.textContent = watchMenuStack.map((node) => node.label).join(' / ');
   backButton.disabled = watchMenuStack.length <= 1;
+  watchMenuSelectedIndex = Math.min(watchMenuSelectedIndex, Math.max(0, children.length - 1));
   list.scrollTop = 0;
+  updateWatchMenuSelection();
   updateWatchMenuDepthEffect();
 }
 
@@ -896,19 +901,89 @@ function handleWatchMenuClick(event) {
   const current = getCurrentWatchMenuNode();
   const item = current.children?.[index];
   if (!item) return;
+  watchMenuSelectedIndex = index;
+  updateWatchMenuSelection();
   if (item.children?.length) {
     watchMenuStack.push(item);
+    watchMenuSelectedIndex = 0;
     renderWatchMenu();
   } else {
-    target.classList.add('is-active');
-    setTimeout(() => target.classList.remove('is-active'), 240);
+    triggerWatchMenuActive(target);
   }
 }
 
 function navigateWatchMenuBack() {
   if (watchMenuStack.length <= 1) return;
   watchMenuStack.pop();
+  watchMenuSelectedIndex = 0;
   renderWatchMenu();
+}
+
+function navigateWatchMenuDown() {
+  const current = getCurrentWatchMenuNode();
+  const total = current.children?.length || 0;
+  if (!total) return;
+  watchMenuSelectedIndex = (watchMenuSelectedIndex + 1) % total;
+  updateWatchMenuSelection(true);
+}
+
+function confirmWatchMenuSelection() {
+  const list = els['watch-menu-list'];
+  const current = getCurrentWatchMenuNode();
+  const item = current.children?.[watchMenuSelectedIndex];
+  if (!list || !item) return;
+  const row = list.querySelector(`.watch-menu-item[data-item-index="${watchMenuSelectedIndex}"]`);
+  if (!(row instanceof HTMLElement)) return;
+  if (item.children?.length) {
+    watchMenuStack.push(item);
+    watchMenuSelectedIndex = 0;
+    renderWatchMenu();
+  } else {
+    triggerWatchMenuActive(row);
+  }
+}
+
+function triggerWatchMenuActive(row) {
+  row.classList.add('is-active');
+  setTimeout(() => row.classList.remove('is-active'), 240);
+}
+
+function updateWatchMenuSelection(ensureVisible = false) {
+  const list = els['watch-menu-list'];
+  if (!list) return;
+  list.querySelectorAll('.watch-menu-item').forEach((item) => item.classList.remove('is-selected'));
+  const active = list.querySelector(`.watch-menu-item[data-item-index="${watchMenuSelectedIndex}"]`);
+  if (active instanceof HTMLElement) {
+    active.classList.add('is-selected');
+    if (ensureVisible) {
+      active.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+  }
+  updateWatchMenuDepthEffect();
+}
+
+function handleWatchMenuWheel(event) {
+  event.preventDefault();
+  navigateWatchMenuDown();
+}
+
+function handleWatchMenuKeyboard(event) {
+  const activeSection = document.querySelector('#watch-menu-module:not(.is-hidden)');
+  if (!activeSection) return;
+  if (event.key === '1') {
+    event.preventDefault();
+    navigateWatchMenuBack();
+    return;
+  }
+  if (event.key === '2') {
+    event.preventDefault();
+    navigateWatchMenuDown();
+    return;
+  }
+  if (event.key === '3') {
+    event.preventDefault();
+    confirmWatchMenuSelection();
+  }
 }
 
 function updateWatchMenuDepthEffect() {
