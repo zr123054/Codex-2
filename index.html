@@ -469,6 +469,12 @@
             <label>电机扭矩 (N·m)
               <input id="spool-motor-torque" type="number" step="any" min="0" />
             </label>
+            <label>电机 KV 值 (rpm/V)
+              <input id="spool-motor-kv" type="number" step="any" min="0" placeholder="例如 920" />
+            </label>
+            <label>工作电压 (V)
+              <input id="spool-work-voltage" type="number" step="any" min="0" placeholder="例如 36" />
+            </label>
           </div>
 
           <div class="note-box">提示：理想模型，不考虑卷径变化；η 必须在 0~1 之间。</div>
@@ -482,8 +488,9 @@
             <h4>公式说明</h4>
             <ul>
               <li>v = π × D × n<sub>out</sub></li>
-              <li>n<sub>motor</sub> = n<sub>out</sub> × i</li>
-              <li>T<sub>out</sub> = T<sub>motor</sub> × i × η</li>
+            <li>n<sub>motor</sub> = n<sub>out</sub> × i</li>
+            <li>n<sub>motor</sub> = KV × U</li>
+            <li>T<sub>out</sub> = T<sub>motor</sub> × i × η</li>
               <li>F = T<sub>out</sub> / r</li>
               <li>r = D / 2</li>
             </ul>

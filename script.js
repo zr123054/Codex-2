@@ -799,8 +799,13 @@ function computeSpool() {
     speed: parseNum('spool-speed'),
     force: parseNum('spool-force-kg'),
     motorSpeed: parseNum('spool-motor-speed'),
-    motorTorque: parseNum('spool-motor-torque')
+    motorTorque: parseNum('spool-motor-torque'),
+    motorKv: parseNum('spool-motor-kv'),
+    workVoltage: parseNum('spool-work-voltage')
   };
+  const kvDerivedMotorSpeed = validPositive(inputValues.motorKv) && validPositive(inputValues.workVoltage)
+    ? inputValues.motorKv * inputValues.workVoltage
+    : null;
 
   const derived = {
     lineSpeedMPerMin: null,
@@ -826,8 +831,10 @@ function computeSpool() {
         derived.motorTorque = derived.outputTorque / (ratio * efficiency);
         break;
       case 'motorSpeed':
-        if (!validPositive(inputValues.motorSpeed)) throw new Error('请输入有效的电机转速。');
-        derived.motorSpeed = inputValues.motorSpeed;
+        if (!validPositive(inputValues.motorSpeed) && !validPositive(kvDerivedMotorSpeed)) {
+          throw new Error('请输入有效的电机转速，或输入 KV 值和工作电压。');
+        }
+        derived.motorSpeed = validPositive(inputValues.motorSpeed) ? inputValues.motorSpeed : kvDerivedMotorSpeed;
         derived.outputSpeed = derived.motorSpeed / ratio;
         derived.lineSpeedMPerMin = Math.PI * diameterM * derived.outputSpeed;
         break;
@@ -853,6 +860,11 @@ function computeSpool() {
   if (validPositive(derived.outputTorque) && !validPositive(derived.motorTorque)) derived.motorTorque = derived.outputTorque / (ratio * efficiency);
   if (validPositive(derived.lineSpeedMPerMin) && !validPositive(derived.outputSpeed)) derived.outputSpeed = derived.lineSpeedMPerMin / (Math.PI * diameterM);
   if (validPositive(derived.outputSpeed) && !validPositive(derived.motorSpeed)) derived.motorSpeed = derived.outputSpeed * ratio;
+  if (!validPositive(derived.motorSpeed) && validPositive(kvDerivedMotorSpeed)) derived.motorSpeed = kvDerivedMotorSpeed;
+
+  if (!validPositive(inputValues.motorSpeed) && validPositive(kvDerivedMotorSpeed) && mode === 'motorSpeed' && !els['spool-motor-speed'].disabled) {
+    els['spool-motor-speed'].value = format(kvDerivedMotorSpeed);
+  }
 
   const cards = [
     createOutputCard('收线速度', derived.lineSpeedMPerMin, 'm/min'),
@@ -860,7 +872,8 @@ function computeSpool() {
     createOutputCard('输出轴转速', derived.outputSpeed, 'rpm'),
     createOutputCard('电机转速', derived.motorSpeed, 'rpm'),
     createOutputCard('输出轴扭矩', derived.outputTorque, 'N·m'),
-    createOutputCard('电机扭矩', derived.motorTorque, 'N·m')
+    createOutputCard('电机扭矩', derived.motorTorque, 'N·m'),
+    createOutputCard('KV 推导电机转速', kvDerivedMotorSpeed, 'rpm')
   ];
   els['spool-output'].innerHTML = cards.join('');
 }
