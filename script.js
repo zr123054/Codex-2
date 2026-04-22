@@ -17,6 +17,7 @@ let lastPickupPressAt = 0;
 let lastModePressAt = 0;
 let watchScrollSpeed = 1.8;
 let watchSyncLocked = false;
+let invertedImageDataUrl = '';
 
 const themeColorPresets = {
   blue: { primary: '#3b82f6', strong: '#2563eb' },
@@ -81,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSpoolMode();
   initBranchMapModule();
   initWatchMenuModule();
+  initImageInvertModule();
   syncTranslateMode();
   bindEvents();
   refreshAll();
@@ -123,6 +125,9 @@ function bindEvents() {
   els['watch-wheel']?.addEventListener('wheel', handleWatchMenuWheel, { passive: false });
   els['watch-menu-module']?.addEventListener('wheel', preventWatchModulePageScroll, { passive: false });
   els['watch-scroll-speed']?.addEventListener('input', handleWatchScrollSpeedChange);
+  els['invert-image-file']?.addEventListener('change', handleInvertImageFileChange);
+  els['invert-image-run']?.addEventListener('click', runImageInvert);
+  els['invert-image-download']?.addEventListener('click', downloadInvertedImage);
   document.addEventListener('keydown', handleWatchMenuKeyboard);
   els['translate-mode']?.addEventListener('change', syncTranslateMode);
   els['translate-run']?.addEventListener('click', runTranslation);
@@ -1461,6 +1466,93 @@ function getBranchLabelWidth(label) {
   return Math.max(80, Math.ceil(text.length * (branchFontSize * 0.65) + 26));
 }
 
+function initImageInvertModule() {
+  invertedImageDataUrl = '';
+  if (els['invert-image-original']) els['invert-image-original'].src = '';
+  if (els['invert-image-result']) els['invert-image-result'].src = '';
+  if (els['invert-image-download']) els['invert-image-download'].disabled = true;
+  if (els['invert-image-status']) {
+    setHtml('invert-image-status', '请选择一张图片后开始处理。');
+  }
+}
+
+function handleInvertImageFileChange() {
+  const fileInput = els['invert-image-file'];
+  const file = fileInput?.files?.[0];
+  if (!file) {
+    initImageInvertModule();
+    return;
+  }
+  if (!file.type.startsWith('image/')) {
+    setHtml('invert-image-status', '<span class="error">请选择有效的图片文件。</span>');
+    if (els['invert-image-download']) els['invert-image-download'].disabled = true;
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const dataUrl = typeof reader.result === 'string' ? reader.result : '';
+    if (els['invert-image-original']) els['invert-image-original'].src = dataUrl;
+    if (els['invert-image-result']) els['invert-image-result'].src = '';
+    invertedImageDataUrl = '';
+    if (els['invert-image-download']) els['invert-image-download'].disabled = true;
+    setHtml('invert-image-status', '图片已加载，点击“生成反色图片”开始处理。');
+  };
+  reader.onerror = () => {
+    setHtml('invert-image-status', '<span class="error">图片读取失败，请重试。</span>');
+  };
+  reader.readAsDataURL(file);
+}
+
+function runImageInvert() {
+  const source = els['invert-image-original']?.src || '';
+  if (!source) {
+    setHtml('invert-image-status', '<span class="error">请先选择图片文件。</span>');
+    return;
+  }
+  const image = new Image();
+  image.onload = () => {
+    const canvas = els['invert-image-canvas'];
+    if (!(canvas instanceof HTMLCanvasElement)) return;
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      setHtml('invert-image-status', '<span class="error">浏览器不支持 Canvas 图像处理。</span>');
+      return;
+    }
+    ctx.drawImage(image, 0, 0);
+    const frame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const px = frame.data;
+    for (let i = 0; i < px.length; i += 4) {
+      px[i] = 255 - px[i];
+      px[i + 1] = 255 - px[i + 1];
+      px[i + 2] = 255 - px[i + 2];
+    }
+    ctx.putImageData(frame, 0, 0);
+    invertedImageDataUrl = canvas.toDataURL('image/png');
+    if (els['invert-image-result']) els['invert-image-result'].src = invertedImageDataUrl;
+    if (els['invert-image-download']) els['invert-image-download'].disabled = false;
+    setHtml('invert-image-status', `反色完成：${image.naturalWidth} × ${image.naturalHeight}。`);
+  };
+  image.onerror = () => {
+    setHtml('invert-image-status', '<span class="error">图片解析失败，请重新上传。</span>');
+  };
+  image.src = source;
+}
+
+function downloadInvertedImage() {
+  if (!invertedImageDataUrl) {
+    setHtml('invert-image-status', '<span class="error">请先生成反色图片。</span>');
+    return;
+  }
+  const link = document.createElement('a');
+  link.href = invertedImageDataUrl;
+  link.download = 'inverted-image.png';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+
 function clearAllInputs() {
   document.querySelectorAll('input[type="number"]').forEach((input) => {
     input.value = '';
@@ -1471,6 +1563,8 @@ function clearAllInputs() {
   if (els['translate-image-output']) setHtml('translate-image-output', '图片翻译结果显示在这里。');
   if (els['extract-image-output']) setHtml('extract-image-output', '图片文字提取结果显示在这里。');
   if (els['translate-image-file']) els['translate-image-file'].value = '';
+  if (els['invert-image-file']) els['invert-image-file'].value = '';
+  initImageInvertModule();
   if (els['branch-font-size']) els['branch-font-size'].value = '18';
   if (els['branch-font-color']) els['branch-font-color'].value = '#1f2937';
   if (els['branch-map-canvas-wrap']) els['branch-map-canvas-wrap'].classList.remove('is-fullscreen');

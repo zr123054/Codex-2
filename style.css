@@ -394,6 +394,39 @@ textarea { resize: vertical; min-height: 110px; }
   background: radial-gradient(circle at 35% 30%, #fafafa 0%, #d1d5db 45%, #9ca3af 100%);
   box-shadow: inset 0 4px 10px rgba(255, 255, 255, 0.7), inset 0 -5px 10px rgba(0, 0, 0, 0.22);
 }
+.invert-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 12px 0;
+}
+.invert-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+.invert-preview {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  background: var(--surface-soft);
+}
+.invert-preview figcaption {
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: var(--font-sm);
+}
+.invert-preview img {
+  width: 100%;
+  min-height: 180px;
+  max-height: 360px;
+  object-fit: contain;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  background: color-mix(in srgb, var(--surface) 75%, #000000);
+}
 input:focus, select:focus, textarea:focus, button:focus {
   outline: none; border-color: color-mix(in srgb, var(--primary) 60%, transparent);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent);
@@ -544,4 +577,5 @@ body.theme-dark .primary-btn {
   .dynamic-row.two-input { grid-template-columns: 1fr; }
   .dynamic-row.with-action,
   .dynamic-row.two-input.with-action { grid-template-columns: 1fr; }
+  .invert-preview-grid { grid-template-columns: 1fr; }
 }

@@ -112,6 +112,11 @@
             <strong>240×240 滚动菜单</strong>
             <small>层级菜单 / 丝滑滚动</small>
           </button>
+          <button class="module-toggle" data-target="image-invert-module" draggable="true">
+            <span class="module-code">模块 J</span>
+            <strong>图片反色</strong>
+            <small>上传图片并一键生成反色效果</small>
+          </button>
         </div>
       </section>
 
@@ -625,6 +630,41 @@
               <span id="watch-scroll-speed-value">1.8x</span>
             </div>
             <div id="watch-wheel" class="watch-wheel" title="滚轮（鼠标滚动）"></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="image-invert-module" data-module-section class="module-card module-theme-b is-hidden">
+        <div class="module-header">
+          <div>
+            <h2>模块 J：图片反色</h2>
+            <p>上传本地图片后，点击按钮即可生成反色图像并下载。</p>
+          </div>
+          <span class="badge">图像工具</span>
+        </div>
+        <div class="sub-grid">
+          <article class="panel">
+            <div class="field-grid">
+              <label>选择图片
+                <input id="invert-image-file" type="file" accept="image/*" />
+              </label>
+            </div>
+            <div class="invert-actions">
+              <button id="invert-image-run" type="button" class="primary-btn">生成反色图片</button>
+              <button id="invert-image-download" type="button" class="secondary-btn" disabled>下载反色图</button>
+            </div>
+            <div id="invert-image-status" class="result-box">请选择一张图片后开始处理。</div>
+            <div class="invert-preview-grid">
+              <figure class="invert-preview">
+                <figcaption>原图预览</figcaption>
+                <img id="invert-image-original" alt="原图预览" />
+              </figure>
+              <figure class="invert-preview">
+                <figcaption>反色预览</figcaption>
+                <img id="invert-image-result" alt="反色预览" />
+              </figure>
+            </div>
+            <canvas id="invert-image-canvas" class="is-hidden"></canvas>
           </article>
         </div>
       </section>
