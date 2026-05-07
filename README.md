@@ -22,6 +22,16 @@ python3 -m http.server 8080
 http://localhost:8080
 ```
 
+
+## 如果打开后仍然看到旧的“硬件产品常用计算与单位换算工具”
+
+这表示浏览器或本地静态服务仍在展示旧版本文件，而不是本次 FE25 Demo 的 `index.html`。请按下面顺序排查：
+
+1. 确认打开的是本项目根目录下的 `index.html`，页面标题应为 `FE25 Test APP 离线 Demo`。
+2. 如果通过本地服务访问，请停止旧服务后在本项目目录重新执行 `python3 -m http.server 8080`。
+3. 浏览器中使用强制刷新：Windows/Linux 按 `Ctrl + F5`，macOS 按 `Command + Shift + R`。
+4. 如果仍显示旧页面，请清理当前站点缓存，或直接用无痕窗口打开。
+
 ## 项目结构
 
 ```text

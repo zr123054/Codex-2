@@ -3,8 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>FE25 Test APP 离线 Demo</title>
-  <link rel="stylesheet" href="style.css" />
+  <!-- 使用版本参数避免浏览器继续读取旧版硬件工具页面缓存。 -->
+  <link rel="stylesheet" href="style.css?v=fe25-demo-20260507" />
 </head>
 <body>
   <main class="demo-stage">
@@ -20,6 +24,6 @@
       <div class="home-indicator" aria-hidden="true"></div>
     </section>
   </main>
-  <script src="app.js"></script>
+  <script src="app.js?v=fe25-demo-20260507"></script>
 </body>
 </html>
