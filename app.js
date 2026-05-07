@@ -32,6 +32,19 @@ const modalRoot = document.getElementById('modal-root');
 const toastEl = document.getElementById('toast');
 let toastTimer = null;
 
+function hasBluetoothPermission() {
+  return state.permissions.bluetooth;
+}
+
+function hasStoragePermission() {
+  return state.permissions.storage;
+}
+
+function disabledAttr(condition) {
+  return condition ? 'disabled aria-disabled="true"' : '';
+}
+
+
 window.addEventListener('DOMContentLoaded', () => {
   render();
   setTimeout(() => navigate('permission'), 1000);
@@ -90,17 +103,21 @@ function permission() {
 }
 
 function home() {
+  const bluetoothDisabled = !hasBluetoothPermission();
   const connectedRows = state.connected.map((d) => deviceRow(d, true)).join('');
   const availableRows = state.available.map((d) => deviceRow(d, false)).join('');
-  return page(`<section class="home-hero"><div class="home-row"><div><h1>FE25 Test APP</h1><div class="version-line">1.0.0.2</div><div class="status">已连接</div></div><button class="primary-btn" data-action="scan">${state.scanning ? '扫描中...' : '扫描设备'}</button></div></section>
+  return page(`<section class="home-hero"><div class="home-row"><div><h1>FE25 Test APP</h1><div class="version-line">1.0.0.2</div></div><button class="primary-btn" data-action="scan" ${disabledAttr(bluetoothDisabled)}>${state.scanning ? '扫描中...' : '扫描设备'}</button></div></section>
+    ${bluetoothDisabled ? '<div class="permission-tip card">蓝牙权限未开启，扫描、连接、断开和设备操作暂不可用。</div>' : ''}
     <h2 class="list-title">已连接设备（${state.connected.length}）</h2>${connectedRows}
     <h2 class="list-title">可连接设备（${state.available.length}）</h2>${availableRows}`, { tab: 'home' });
 }
 
 function deviceRow(device, connected) {
-  const detailAttr = connected ? `data-device-row="${device}"` : '';
-  return `<article class="device-row card" ${detailAttr}><strong class="device-name">${device}</strong><div class="row-actions">
-    ${connected ? `<button class="row-link" data-upgrade="${device}">升级</button><button class="row-link row-danger" data-disconnect="${device}">断开</button>` : `<button class="row-link" data-connect="${device}">连接</button>`}
+  const bluetoothDisabled = !hasBluetoothPermission();
+  const detailAttr = connected && !bluetoothDisabled ? `data-device-row="${device}"` : '';
+  const disabledClass = bluetoothDisabled ? 'disabled-card' : '';
+  return `<article class="device-row card ${disabledClass}" ${detailAttr}><strong class="device-name">${device}</strong><div class="row-actions">
+    ${connected ? `<button class="row-link" data-upgrade="${device}" ${disabledAttr(bluetoothDisabled)}>升级</button><button class="row-link row-danger" data-disconnect="${device}" ${disabledAttr(bluetoothDisabled)}>断开</button>` : `<button class="row-link" data-connect="${device}" ${disabledAttr(bluetoothDisabled)}>连接</button>`}
   </div></article>`;
 }
 
@@ -128,9 +145,11 @@ function firmwareDone() {
 function deviceDetail() {
   const d = state.currentDevice;
   const run = state.collecting;
+  const bluetoothDisabled = !hasBluetoothPermission();
   return page(`${topBar(d)}<div class="status status-dot">已连接</div>
-    <section class="action-card card"><div class="action-head"><span>设备操作（${run ? 1 : 0}）</span>${run ? `<span class="setting-value">采集时间：${formatTime(state.collectSeconds)}</span>` : ''}</div><div class="button-grid"><button class="${run ? 'success-btn' : 'primary-btn'}" data-action="start-collect" ${run ? 'disabled' : ''}>${run ? '采集中...' : '开始采集'}</button><button class="danger-btn" data-action="stop-collect" ${run ? '' : 'disabled'}>停止采集</button></div></section>
-    <section class="action-card card"><h2 class="section-title">事件标记</h2><div class="events-grid">${EVENTS.map((e) => `<button class="event-btn" data-event="${e}">${e}</button>`).join('')}</div></section>
+    ${bluetoothDisabled ? '<div class="permission-tip card">蓝牙权限未开启，数据采集和事件标记暂不可用。</div>' : ''}
+    <section class="action-card card ${bluetoothDisabled ? 'disabled-card' : ''}"><div class="action-head"><span>设备操作（${run ? 1 : 0}）</span>${run ? `<span class="setting-value">采集时间：${formatTime(state.collectSeconds)}</span>` : ''}</div><div class="button-grid"><button class="${run ? 'success-btn' : 'primary-btn'}" data-action="start-collect" ${disabledAttr(run || bluetoothDisabled)}>${run ? '采集中...' : '开始采集'}</button><button class="danger-btn" data-action="stop-collect" ${disabledAttr(!run || bluetoothDisabled)}>停止采集</button></div></section>
+    <section class="action-card card ${bluetoothDisabled ? 'disabled-card' : ''}"><h2 class="section-title">事件标记</h2><div class="events-grid">${EVENTS.map((e) => `<button class="event-btn" data-event="${e}" ${disabledAttr(bluetoothDisabled)}>${e}</button>`).join('')}</div></section>
     <section class="action-card card"><h2 class="section-title">实时数据</h2><div class="data-grid">${dataCards(run)}</div></section>`, { noTab: true });
 }
 
@@ -140,20 +159,26 @@ function dataCards(run) {
 }
 
 function exportHome() {
+  const storageDisabled = !hasStoragePermission();
+  const navSingle = storageDisabled ? '' : 'data-nav="exportSingle"';
+  const navMulti = storageDisabled ? '' : 'data-nav="exportMulti"';
   return page(`<h1 class="page-title">数据导出</h1><h2 class="list-title">选择导出方式</h2><p class="desc">请选择导出的设备数据源</p>
-    <article class="export-card card" data-nav="exportSingle"><div class="home-row"><div><h2>按设备导出</h2><p class="desc">导出单个设备的所有记录数据</p></div></div></article>
-    <article class="export-card card" data-nav="exportMulti"><div class="home-row"><div><h2>多设备导出</h2><p class="desc">导出多个设备的合并记录数据</p></div></div></article>`, { tab: 'export' });
+    ${storageDisabled ? '<div class="permission-tip card">存储权限未开启，数据导出功能暂不可用。</div>' : ''}
+    <article class="export-card card ${storageDisabled ? 'disabled-card' : ''}" ${navSingle}><div class="home-row"><div><h2>按设备导出</h2><p class="desc">导出单个设备的所有记录数据</p></div></div></article>
+    <article class="export-card card ${storageDisabled ? 'disabled-card' : ''}" ${navMulti}><div class="home-row"><div><h2>多设备导出</h2><p class="desc">导出多个设备的合并记录数据</p></div></div></article>`, { tab: 'export' });
 }
 
 function exportSelect(mode) {
   const isMulti = mode === 'multi';
   const selected = isMulti ? state.multiSelected : state.singleSelected;
   const title = isMulti ? '多设备导出' : '按设备导出';
-  return page(`${topBar(title, 'exportHome')}<div class="segment"><button class="${!isMulti ? 'active' : ''}" data-nav="exportSingle">按设备导出</button><button class="${isMulti ? 'active' : ''}" data-nav="exportMulti">多设备导出</button></div>
+  const storageDisabled = !hasStoragePermission();
+  return page(`${topBar(title, 'exportHome')}<div class="segment"><button class="${!isMulti ? 'active' : ''}" data-nav="exportSingle" ${disabledAttr(storageDisabled)}>按设备导出</button><button class="${isMulti ? 'active' : ''}" data-nav="exportMulti" ${disabledAttr(storageDisabled)}>多设备导出</button></div>
+    ${storageDisabled ? '<div class="permission-tip card">存储权限未开启，无法选择设备或开始导出。</div>' : ''}
     <h2 class="list-title">${isMulti ? '选择要导出的设备' : '选择导出设备'}</h2><p class="desc">${isMulti ? '可同时选择多个设备的数据进行导出' : '请选择需要导出的设备（单选）'}</p>
-    ${EXPORT_DEVICES.map((d) => `<article class="select-row card ${selected.has(d) ? 'selected-row' : ''}" data-export-device="${d}" data-mode="${mode}"><strong class="device-name">${d}</strong><span class="selected-label">${selected.has(d) ? '已选' : ''}</span></article>`).join('')}
+    ${EXPORT_DEVICES.map((d) => `<article class="select-row card ${selected.has(d) ? 'selected-row' : ''} ${storageDisabled ? 'disabled-card' : ''}" ${storageDisabled ? '' : `data-export-device="${d}" data-mode="${mode}"`}><strong class="device-name">${d}</strong><span class="selected-label">${selected.has(d) ? '已选' : ''}</span></article>`).join('')}
     <div class="tip-card card"><strong>${isMulti ? '导出数据将保存到综合数据包' : '导出范围受所选设备限制'}</strong><br>${isMulti ? '导出完成后，应用将生成一个包含所有选中设备数据的 FE25 文件夹数据包。' : '开始导出后，应用将仅导出选中设备。导出期间可在传输状态中查看进度。'}</div>
-    <button class="primary-btn full" data-action="start-export" ${selected.size ? '' : 'disabled'}>开始导出</button>`, { noTab: true });
+    <button class="primary-btn full" data-action="start-export" ${disabledAttr(storageDisabled || !selected.size)}>开始导出</button>`, { noTab: true });
 }
 const exportSingle = () => exportSelect('single');
 const exportMulti = () => exportSelect('multi');
@@ -167,9 +192,11 @@ function exportDone() {
 }
 
 function settings() {
+  const bluetoothDisabled = !hasBluetoothPermission();
+  const storageDisabled = !hasStoragePermission();
   return page(`<h1 class="page-title">设置</h1>
-    <section class="settings-group card"><article class="setting-row clickable-row" data-nav="eventSettings"><strong>事件标记设置</strong><span class="chevron-only">&gt;</span></article><article class="setting-row clickable-row" data-action="record-modal"><strong>记录区间设置</strong><span class="chevron-only">&gt;</span></article><article class="setting-row clickable-row" data-action="scan-modal"><strong>蓝牙扫描超时时间</strong><span class="setting-value">${state.scanTimeout} 秒</span></article></section>
-    <section class="settings-group card"><article class="setting-row static-row"><strong>数据设置</strong><span></span></article><article class="setting-row"><strong>当前存储路径</strong><span class="setting-value">内部存储 &gt; FE25Test</span></article><article class="setting-row clickable-row" data-action="clear-data"><strong>清理本地测试数据</strong><span class="setting-value danger-text">${state.storageSize}</span></article></section>
+    <section class="settings-group card"><article class="setting-row clickable-row" data-nav="eventSettings"><strong>事件标记设置</strong><span class="chevron-only">&gt;</span></article><article class="setting-row clickable-row" data-action="record-modal"><strong>记录区间设置</strong><span class="chevron-only">&gt;</span></article><article class="setting-row clickable-row ${bluetoothDisabled ? 'disabled-card' : ''}" ${bluetoothDisabled ? '' : 'data-action="scan-modal"'}><strong>蓝牙扫描超时时间</strong><span class="setting-value">${state.scanTimeout} 秒</span></article></section>
+    <section class="settings-group card"><article class="setting-row static-row"><strong>数据设置</strong><span></span></article><article class="setting-row ${storageDisabled ? 'disabled-card' : ''}"><strong>当前存储路径</strong><span class="setting-value">内部存储 &gt; FE25Test</span></article><article class="setting-row clickable-row ${storageDisabled ? 'disabled-card' : ''}" ${storageDisabled ? '' : 'data-action="clear-data"'}><strong>清理本地测试数据</strong><span class="setting-value danger-text">${state.storageSize}</span></article></section>
     <section class="settings-group card"><article class="setting-row static-row"><strong>关于</strong><span></span></article><article class="setting-row"><strong>APP名称</strong><span class="setting-value">FE25 Test APP</span></article><article class="setting-row"><strong>版本号</strong><span class="setting-value">1.0.0.x</span></article></section>`, { tab: 'settings' });
 }
 
@@ -211,18 +238,21 @@ function handleAction(action) {
 }
 
 function scanDevices() {
+  if (!hasBluetoothPermission()) { showToast('请先开启蓝牙权限。'); return; }
   if (state.scanning) return;
   state.scanning = true; render();
   setTimeout(() => { state.scanning = false; render(); showToast('扫描完成'); }, 1000);
 }
 
 function moveDevice(device, from, to) {
+  if (!hasBluetoothPermission()) { showToast('请先开启蓝牙权限。'); return; }
   state[from] = state[from].filter((d) => d !== device);
   if (!state[to].includes(device)) state[to].push(device);
   render();
 }
 
 function confirmDisconnect(device) {
+  if (!hasBluetoothPermission()) { showToast('请先开启蓝牙权限。'); return; }
   showModal('断开设备？', `确认断开 ${device}？断开后可在可连接设备中重新连接。`, [
     ['取消', 'secondary-btn', clearModal],
     ['确认断开', 'danger-btn', () => { clearModal(); moveDevice(device, 'connected', 'available'); showToast(`${device} 已断开`); }]
@@ -230,6 +260,7 @@ function confirmDisconnect(device) {
 }
 
 function confirmUpgrade() {
+  if (!hasBluetoothPermission()) { showToast('请先开启蓝牙权限。'); return; }
   showModal('确认升级固件？', '当前版本为 v1.0.8，目标版本为 v1.1.2。<br>升级过程中将自动重启设备，请确保设备电量充足。', [
     ['取消', 'secondary-btn', clearModal],
     ['开始升级', 'primary-btn', () => { clearModal(); startFirmwareProgress(); }]
@@ -237,6 +268,7 @@ function confirmUpgrade() {
 }
 
 function confirmRollback() {
+  if (!hasBluetoothPermission()) { showToast('请先开启蓝牙权限。'); return; }
   showModal('确认回退固件？', '将设备回退到 v1.0.7，可能解决兼容性问题。此处仅做弹窗模拟。', [
     ['取消', 'secondary-btn', clearModal],
     ['开始回退', 'danger-btn', () => { clearModal(); showToast('固件回退已模拟完成'); }]
@@ -255,6 +287,7 @@ function startFirmwareProgress() {
 }
 
 function startCollect() {
+  if (!hasBluetoothPermission()) { showToast('请先开启蓝牙权限。'); return; }
   state.collecting = true;
   state.collectSeconds = 0;
   clearInterval(state.collectTimer);
@@ -283,6 +316,7 @@ function markEvent(name) {
 }
 
 function toggleExportDevice(mode, device) {
+  if (!hasStoragePermission()) { showToast('请先开启存储权限。'); return; }
   if (mode === 'single') {
     // 按设备导出为单选：点击任意设备后只保留当前设备选中。
     state.singleSelected = new Set([device]);
@@ -296,6 +330,7 @@ function toggleExportDevice(mode, device) {
 }
 
 function startExport() {
+  if (!hasStoragePermission()) { showToast('请先开启存储权限。'); return; }
   clearInterval(state.exportTimer);
   state.exportProgress = 0;
   state.exportRunning = true;
@@ -332,6 +367,7 @@ function recordModal() {
 }
 
 function scanModal() {
+  if (!hasBluetoothPermission()) { showToast('请先开启蓝牙权限。'); return; }
   showModal('蓝牙扫描超时时间', '当前超时时间为 10 秒。此 Demo 使用固定模拟值，不连接真实蓝牙设备。', [
     ['取消', 'secondary-btn', clearModal],
     ['确定', 'primary-btn', () => { clearModal(); showToast('扫描超时时间已保存。'); }]
@@ -339,6 +375,7 @@ function scanModal() {
 }
 
 function clearDataModal() {
+  if (!hasStoragePermission()) { showToast('请先开启存储权限。'); return; }
   if (state.collecting) { showToast('当前存在采集任务，请停止采集后再清理。'); return; }
   showModal('清理本地测试数据？', `当前本地测试数据总量 ${state.storageSize}。<br>清理后数据不可恢复，请确认已完成导出。`, [
     ['取消', 'secondary-btn', clearModal],
