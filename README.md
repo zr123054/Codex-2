@@ -31,6 +31,7 @@ http://localhost:8080
 2. 如果通过本地服务访问，请停止旧服务后在本项目目录重新执行 `python3 -m http.server 8080`。
 3. 浏览器中使用强制刷新：Windows/Linux 按 `Ctrl + F5`，macOS 按 `Command + Shift + R`。
 4. 如果仍显示旧页面，请清理当前站点缓存，或直接用无痕窗口打开。
+5. 本项目保留了 `script.js` 作为旧页面缓存兜底：如果旧 HTML 仍引用 `script.js`，它会自动把页面替换成 FE25 Demo。
 
 ## 项目结构
 
@@ -39,6 +40,7 @@ http://localhost:8080
 ├── index.html   # 页面入口，包含手机容器、状态栏、弹窗和 Toast 挂载点
 ├── style.css    # 离线样式，模拟手机外壳、卡片、按钮、Tab、弹窗和进度条
 ├── app.js       # 单页应用逻辑，负责视图切换、模拟状态、进度和交互
+├── script.js    # 旧页面缓存兜底脚本，遇到旧入口时自动切换到 FE25 Demo
 └── README.md    # 运行方式和功能说明
 ```
 
