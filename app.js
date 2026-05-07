@@ -98,7 +98,8 @@ function home() {
 }
 
 function deviceRow(device, connected) {
-  return `<article class="device-row card" data-device-row="${device}"><strong class="device-name">${device}</strong><div class="row-actions">
+  const detailAttr = connected ? `data-device-row="${device}"` : '';
+  return `<article class="device-row card" ${detailAttr}><strong class="device-name">${device}</strong><div class="row-actions">
     ${connected ? `<button class="row-link" data-upgrade="${device}">升级</button><button class="row-link row-danger" data-disconnect="${device}">断开</button>` : `<button class="row-link" data-connect="${device}">连接</button>`}
   </div></article>`;
 }
@@ -140,8 +141,8 @@ function dataCards(run) {
 
 function exportHome() {
   return page(`<h1 class="page-title">数据导出</h1><h2 class="list-title">选择导出方式</h2><p class="desc">请选择导出的设备数据源</p>
-    <article class="export-card card" data-nav="exportSingle"><div class="home-row"><div><h2>按设备导出</h2><p class="desc">导出单个设备的所有记录数据</p></div><span class="chevron-text">进入</span></div></article>
-    <article class="export-card card" data-nav="exportMulti"><div class="home-row"><div><h2>多设备导出</h2><p class="desc">导出多个设备的合并记录数据</p></div><span class="chevron-text">进入</span></div></article>`, { tab: 'export' });
+    <article class="export-card card" data-nav="exportSingle"><div class="home-row"><div><h2>按设备导出</h2><p class="desc">导出单个设备的所有记录数据</p></div></div></article>
+    <article class="export-card card" data-nav="exportMulti"><div class="home-row"><div><h2>多设备导出</h2><p class="desc">导出多个设备的合并记录数据</p></div></div></article>`, { tab: 'export' });
 }
 
 function exportSelect(mode) {
@@ -149,7 +150,7 @@ function exportSelect(mode) {
   const selected = isMulti ? state.multiSelected : state.singleSelected;
   const title = isMulti ? '多设备导出' : '按设备导出';
   return page(`${topBar(title, 'exportHome')}<div class="segment"><button class="${!isMulti ? 'active' : ''}" data-nav="exportSingle">按设备导出</button><button class="${isMulti ? 'active' : ''}" data-nav="exportMulti">多设备导出</button></div>
-    <h2 class="list-title">${isMulti ? '选择要导出的设备' : '选择导出设备'}</h2><p class="desc">${isMulti ? '可同时选择多个设备的数据进行导出' : '请选择需要导出的设备（可多选）'}</p>
+    <h2 class="list-title">${isMulti ? '选择要导出的设备' : '选择导出设备'}</h2><p class="desc">${isMulti ? '可同时选择多个设备的数据进行导出' : '请选择需要导出的设备（单选）'}</p>
     ${EXPORT_DEVICES.map((d) => `<article class="select-row card ${selected.has(d) ? 'selected-row' : ''}" data-export-device="${d}" data-mode="${mode}"><strong class="device-name">${d}</strong><span class="selected-label">${selected.has(d) ? '已选' : ''}</span></article>`).join('')}
     <div class="tip-card card"><strong>${isMulti ? '导出数据将保存到综合数据包' : '导出范围受所选设备限制'}</strong><br>${isMulti ? '导出完成后，应用将生成一个包含所有选中设备数据的 FE25 文件夹数据包。' : '开始导出后，应用将仅导出选中设备。导出期间可在传输状态中查看进度。'}</div>
     <button class="primary-btn full" data-action="start-export" ${selected.size ? '' : 'disabled'}>开始导出</button>`, { noTab: true });
@@ -167,9 +168,9 @@ function exportDone() {
 
 function settings() {
   return page(`<h1 class="page-title">设置</h1>
-    <section class="settings-group card"><article class="setting-row" data-nav="eventSettings"><strong>事件标记设置</strong><span class="chevron-text">进入</span></article><article class="setting-row" data-action="record-modal"><strong>记录区间设置</strong><span class="chevron-text">设置</span></article><article class="setting-row" data-action="scan-modal"><strong>蓝牙扫描超时时间</strong><span class="setting-value">${state.scanTimeout} 秒　设置</span></article></section>
-    <section class="settings-group card"><article class="setting-row"><strong>数据设置</strong><span class="chevron-text">查看</span></article><article class="setting-row"><strong>当前存储路径</strong><span class="setting-value">内部存储 &gt; FE25Test</span></article><article class="setting-row" data-action="clear-data"><strong>清理本地测试数据</strong><span class="setting-value">${state.storageSize}　清理</span></article></section>
-    <section class="settings-group card"><article class="setting-row"><strong>关于</strong><span class="chevron-text">查看</span></article><article class="setting-row"><strong>APP名称</strong><span class="setting-value">FE25 Test APP</span></article><article class="setting-row"><strong>版本号</strong><span class="setting-value">1.0.0.x</span></article></section>`, { tab: 'settings' });
+    <section class="settings-group card"><article class="setting-row clickable-row" data-nav="eventSettings"><strong>事件标记设置</strong><span class="chevron-only">&gt;</span></article><article class="setting-row clickable-row" data-action="record-modal"><strong>记录区间设置</strong><span class="chevron-only">&gt;</span></article><article class="setting-row clickable-row" data-action="scan-modal"><strong>蓝牙扫描超时时间</strong><span class="setting-value">${state.scanTimeout} 秒</span></article></section>
+    <section class="settings-group card"><article class="setting-row static-row"><strong>数据设置</strong><span></span></article><article class="setting-row"><strong>当前存储路径</strong><span class="setting-value">内部存储 &gt; FE25Test</span></article><article class="setting-row clickable-row" data-action="clear-data"><strong>清理本地测试数据</strong><span class="setting-value danger-text">${state.storageSize}</span></article></section>
+    <section class="settings-group card"><article class="setting-row static-row"><strong>关于</strong><span></span></article><article class="setting-row"><strong>APP名称</strong><span class="setting-value">FE25 Test APP</span></article><article class="setting-row"><strong>版本号</strong><span class="setting-value">1.0.0.x</span></article></section>`, { tab: 'settings' });
 }
 
 function eventSettings() {
@@ -282,7 +283,14 @@ function markEvent(name) {
 }
 
 function toggleExportDevice(mode, device) {
-  const set = mode === 'multi' ? state.multiSelected : state.singleSelected;
+  if (mode === 'single') {
+    // 按设备导出为单选：点击任意设备后只保留当前设备选中。
+    state.singleSelected = new Set([device]);
+    render();
+    return;
+  }
+
+  const set = state.multiSelected;
   set.has(device) ? set.delete(device) : set.add(device);
   render();
 }

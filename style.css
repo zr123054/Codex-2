@@ -237,6 +237,10 @@ button:disabled { cursor: not-allowed; }
 .export-card { padding: 24px 18px; margin-top: 24px; background: linear-gradient(135deg, #f3f8ff, #fff); }
 .export-card h2 { margin-top: 0; }
 .chevron-text { color: var(--primary); font-weight: 900; font-size: 24px; }
+.chevron-only { color: var(--primary); font-size: 24px; font-weight: 900; line-height: 1; }
+.clickable-row { cursor: pointer; }
+.static-row { cursor: default; }
+.danger-text { color: var(--danger); }
 .segment { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0 28px; }
 .segment button { min-height: 52px; border-radius: 9px; color: var(--muted); background: #fff; border: 1px solid var(--line); font-weight: 800; }
 .segment button.active { color: var(--primary); border-color: var(--primary); background: #f7fbff; }
@@ -265,7 +269,7 @@ button:disabled { cursor: not-allowed; }
 .input-unit input { flex: 1; height: 46px; border: 0; outline: 0; color: var(--primary-dark); font-weight: 800; }
 .error-text { min-height: 18px; color: var(--danger); font-size: 12px; }
 
-.toast { position: absolute; z-index: 30; left: 28px; right: 28px; bottom: 52px; transform: translateY(26px); opacity: 0; pointer-events: none; padding: 12px 14px; border-radius: 9px; color: #fff; background: #061b4f; font-weight: 800; text-align: center; transition: all .25s ease; }
+.toast { position: absolute; z-index: 30; left: 28px; right: 28px; bottom: 96px; transform: translateY(26px); opacity: 0; pointer-events: none; padding: 12px 14px; border-radius: 9px; color: #fff; background: #061b4f; font-weight: 800; text-align: center; transition: all .25s ease; }
 .toast.show { opacity: 1; transform: translateY(0); }
 
 @media (max-width: 480px) {
