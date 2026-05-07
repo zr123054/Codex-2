@@ -1,47 +1,56 @@
-# FE25 Test APP 离线网页 Demo
+# FE25 Test APP 免安装应用程序 Demo
 
-这是一个纯前端、可离线运行的手机 APP 原型 Demo，用于模拟 **FE25 Test APP** 的主要页面结构和基础交互流程，适合产品评审、演示和交互走查。
+这是一个基于 Electron 壳封装的 **免安装桌面应用程序 Demo**，内部仍使用本地 HTML/CSS/JavaScript 渲染 FE25 Test APP 手机端原型；打包后可下载解压并直接双击运行，不需要后端服务、不依赖在线 CDN。
 
 ## 如何运行
 
-方式一：直接打开文件。
+### 产品评审人员：下载后直接打开
 
-1. 下载或复制本项目目录。
-2. 使用本地浏览器直接打开 `index.html`。
-3. 页面会先显示启动页，1 秒后自动进入权限申请页。
+如果你拿到的是已经打包好的版本：
 
-方式二：使用本地静态服务预览（可选）。
+- Windows：双击 `FE25-Test-APP-1.0.0-portable.exe`。
+- macOS：双击 `FE25 Test APP.app`。
+- Linux：双击或执行 `FE25 Test APP.AppImage`。
+
+应用启动后会进入独立桌面窗口，不需要打开浏览器，也不需要安装到系统。
+
+### 开发 / 打包人员：生成免安装包
+
+首次打包需要安装 Electron 依赖：
 
 ```bash
-python3 -m http.server 8080
+npm install
 ```
 
-然后在浏览器访问：
+本地启动桌面应用：
 
-```text
-http://localhost:8080
+```bash
+npm start
 ```
 
+生成 Windows 免安装便携版：
 
-## 如果打开后仍然看到旧的“硬件产品常用计算与单位换算工具”
+```bash
+npm run dist:win
+```
 
-这表示浏览器或本地静态服务仍在展示旧版本文件，而不是本次 FE25 Demo 的 `index.html`。请按下面顺序排查：
+打包产物会输出到 `release/` 目录，交付给评审人员后可直接双击运行。
 
-1. 确认打开的是本项目根目录下的 `index.html`，页面标题应为 `FE25 Test APP 离线 Demo`。
-2. 如果通过本地服务访问，请停止旧服务后在本项目目录重新执行 `python3 -m http.server 8080`。
-3. 浏览器中使用强制刷新：Windows/Linux 按 `Ctrl + F5`，macOS 按 `Command + Shift + R`。
-4. 如果仍显示旧页面，请清理当前站点缓存，或直接用无痕窗口打开。
-5. 本项目保留了 `script.js` 作为旧页面缓存兜底：如果旧 HTML 仍引用 `script.js`，它会自动把页面替换成 FE25 Demo。
+### 备用预览方式
+
+`index.html` 仍可作为本地页面预览入口保留，但正式交付建议使用上面的 Electron 免安装包。
 
 ## 项目结构
 
 ```text
 .
-├── index.html   # 页面入口，包含手机容器、状态栏、弹窗和 Toast 挂载点
+├── package.json # Electron 启动与免安装打包配置
+├── main.js      # 桌面应用主进程入口，创建独立应用窗口
+├── index.html   # 渲染入口，包含手机容器、状态栏、弹窗和 Toast 挂载点
 ├── style.css    # 离线样式，模拟手机外壳、卡片、按钮、Tab、弹窗和进度条
 ├── app.js       # 单页应用逻辑，负责视图切换、模拟状态、进度和交互
 ├── script.js    # 旧页面缓存兜底脚本，遇到旧入口时自动切换到 FE25 Demo
-└── README.md    # 运行方式和功能说明
+└── README.md    # 运行、打包方式和功能说明
 ```
 
 ## 已实现功能
@@ -74,5 +83,6 @@ http://localhost:8080
 - 使用白底、深蓝文字、蓝色主按钮、圆角卡片和轻量阴影，尽量贴近参考图中的测试工具风格。
 - 页面被固定宽高的手机容器包裹，模拟移动端 APP 外观。
 - 全部功能入口均使用中文文字表达，不使用功能 ICON。
-- 页面切换由 `app.js` 控制，不刷新浏览器。
+- 页面切换由 `app.js` 控制，在 Electron 独立窗口内完成，不刷新页面。
 - 所有样式和脚本均为本地文件，不依赖 CDN 或后端服务。
+- `main.js` 只加载本地 `index.html`，关闭 Node 注入，适合作为评审用免安装原型壳。
