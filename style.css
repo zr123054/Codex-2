@@ -113,10 +113,16 @@ button:disabled { cursor: not-allowed; }
   min-height: 100%;
   padding: 70px 18px 78px;
   overflow-y: auto;
-  scrollbar-width: none;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(18, 104, 255, .38) transparent;
 }
-.app-page::-webkit-scrollbar { display: none; }
+.app-page::-webkit-scrollbar { width: 4px; }
+.app-page::-webkit-scrollbar-track { background: transparent; }
+.app-page::-webkit-scrollbar-thumb { background: rgba(18, 104, 255, .32); border-radius: 999px; }
 .app-page.no-tab { padding-bottom: 32px; }
+.app-page.scroll-page { padding-bottom: 112px; scroll-behavior: smooth; }
 .app-page.center { display: flex; flex-direction: column; justify-content: center; text-align: center; }
 .app-page.progress-page { display: flex; flex-direction: column; justify-content: center; align-items: stretch; gap: 24px; text-align: center; }
 
@@ -231,7 +237,26 @@ button:disabled { cursor: not-allowed; }
 .badge { color: var(--success); border: 1px solid rgba(24,190,103,.45); border-radius: 6px; padding: 2px 6px; font-size: 12px; margin-left: 8px; }
 .panel { padding: 16px; margin-top: 14px; }
 .panel p, .note { color: var(--muted); line-height: 1.7; font-size: 14px; }
-.select-like { height: 46px; border: 1px solid var(--line); border-radius: 10px; display: flex; align-items: center; padding: 0 12px; font-weight: 800; }
+.select-label { display: block; margin-top: 14px; font-weight: 800; }
+.select-like {
+  width: 100%;
+  height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  padding: 0 38px 0 12px;
+  color: var(--primary-dark);
+  background: #fff;
+  font-weight: 800;
+  outline: none;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--primary-dark) 50%), linear-gradient(135deg, var(--primary-dark) 50%, transparent 50%);
+  background-position: calc(100% - 21px) 19px, calc(100% - 14px) 19px;
+  background-size: 7px 7px, 7px 7px;
+  background-repeat: no-repeat;
+}
+.select-like:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(18, 104, 255, .12); }
 .note-list { padding-left: 18px; color: var(--primary-dark); line-height: 1.7; }
 
 .progress-wrap { width: 100%; height: 20px; border-radius: 999px; background: #e7edf7; overflow: hidden; }

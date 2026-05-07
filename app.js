@@ -24,7 +24,8 @@ const state = {
   storageSize: '2.35 GB',
   recordBefore: '30',
   recordAfter: '3',
-  scanTimeout: '10'
+  scanTimeout: '10',
+  rollbackVersion: 'v1.0.7'
 };
 
 const app = document.getElementById('app');
@@ -69,7 +70,7 @@ function render() {
 }
 
 function page(content, options = {}) {
-  const cls = ['app-page', options.noTab ? 'no-tab' : '', options.center ? 'center' : '', options.progress ? 'progress-page' : ''].filter(Boolean).join(' ');
+  const cls = ['app-page', options.noTab ? 'no-tab' : '', options.center ? 'center' : '', options.progress ? 'progress-page' : '', options.scroll ? 'scroll-page' : ''].filter(Boolean).join(' ');
   return `<div class="${cls}">${content}</div>${options.tab ? tabbar(options.tab) : ''}`;
 }
 
@@ -127,8 +128,8 @@ function firmware() {
     <h2 class="big-device">${d}</h2><div class="status">已连接</div>
     <div class="info-grid mt-16"><div class="info-card card"><small>当前固件版本</small><strong>v1.0.8</strong><span class="badge">可升级</span></div><div class="info-card card"><small>最新版本</small><strong>v1.1.2</strong></div></div>
     <section class="panel card"><h2 class="section-title">固件升级</h2><p>升级将更新设备到最新固件版本，性能优化、功能增强和问题修复。</p><button class="primary-btn full" data-action="confirm-upgrade">开始升级</button></section>
-    <section class="panel card"><h2 class="section-title">固件回退</h2><p>将设备回退到上一版本，可能解决兼容性问题。</p><strong>选择回退版本</strong><div class="select-like mt-16">v1.0.7</div><button class="primary-btn full" data-action="confirm-rollback">开始回退</button></section>
-    <section class="panel card"><h2 class="section-title">升级说明</h2><ul class="note-list"><li>升级过程中断设备的当前功能，升级后设备将自动重启。</li><li>建议在电量大于50%或连接外部电源时升级。</li></ul></section>`, { noTab: true });
+    <section class="panel card"><h2 class="section-title">固件回退</h2><p>将设备回退到上一版本，可能解决兼容性问题。</p><label class="select-label" for="rollback-version">选择回退版本</label><select id="rollback-version" class="select-like mt-16" data-action="rollback-select"><option value="v1.0.7" ${state.rollbackVersion === 'v1.0.7' ? 'selected' : ''}>v1.0.7</option><option value="v1.0.6" ${state.rollbackVersion === 'v1.0.6' ? 'selected' : ''}>v1.0.6</option><option value="v1.0.5" ${state.rollbackVersion === 'v1.0.5' ? 'selected' : ''}>v1.0.5</option></select><button class="primary-btn full" data-action="confirm-rollback">开始回退</button></section>
+    <section class="panel card"><h2 class="section-title">升级说明</h2><ul class="note-list"><li>升级过程中断设备的当前功能，升级后设备将自动重启。</li><li>建议在电量大于50%或连接外部电源时升级。</li></ul></section>`, { noTab: true, scroll: true });
 }
 
 function firmwareProgress() {
@@ -214,6 +215,10 @@ function bindViewEvents() {
   app.querySelectorAll('[data-event]').forEach((el) => el.addEventListener('click', () => markEvent(el.dataset.event)));
   app.querySelectorAll('[data-export-device]').forEach((el) => el.addEventListener('click', () => toggleExportDevice(el.dataset.mode, el.dataset.exportDevice)));
   app.querySelectorAll('[data-toggle-event]').forEach((el) => el.addEventListener('click', () => toggleEvent(el.dataset.toggleEvent)));
+  const rollbackSelect = app.querySelector('#rollback-version');
+  if (rollbackSelect) {
+    rollbackSelect.addEventListener('change', (event) => { state.rollbackVersion = event.target.value; });
+  }
   app.querySelectorAll('[data-action]').forEach((el) => el.addEventListener('click', () => handleAction(el.dataset.action)));
 }
 
@@ -269,7 +274,7 @@ function confirmUpgrade() {
 
 function confirmRollback() {
   if (!hasBluetoothPermission()) { showToast('请先开启蓝牙权限。'); return; }
-  showModal('确认回退固件？', '将设备回退到 v1.0.7，可能解决兼容性问题。此处仅做弹窗模拟。', [
+  showModal('确认回退固件？', `将设备回退到 ${state.rollbackVersion}，可能解决兼容性问题。此处仅做弹窗模拟。`, [
     ['取消', 'secondary-btn', clearModal],
     ['开始回退', 'danger-btn', () => { clearModal(); showToast('固件回退已模拟完成'); }]
   ]);
