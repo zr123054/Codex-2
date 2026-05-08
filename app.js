@@ -37,6 +37,9 @@ const state = {
   collectTimer: null,
   firmwareProgress: 0,
   firmwareTimer: null,
+  currentFirmwareVersion: 'v1.0.8',
+  latestFirmwareVersion: 'v1.1.2',
+  firmwareSourceVersion: 'v1.0.8',
   exportProgress: 0,
   exportTimer: null,
   exportRunning: false,
@@ -48,7 +51,7 @@ const state = {
   recordBefore: '30',
   recordAfter: '3',
   scanTimeout: '10',
-  rollbackVersion: 'v1.0.7',
+  selectedFirmwareVersion: 'v1.1.2',
   markHistory: []
 };
 
@@ -67,6 +70,27 @@ function hasStoragePermission() {
 
 function disabledAttr(condition) {
   return condition ? 'disabled aria-disabled="true"' : '';
+}
+
+function compareVersion(a, b) {
+  const pa = a.replace(/^v/, '').split('.').map(Number);
+  const pb = b.replace(/^v/, '').split('.').map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i += 1) {
+    const diff = (pa[i] || 0) - (pb[i] || 0);
+    if (diff !== 0) return diff;
+  }
+  return 0;
+}
+
+function firmwareActionText() {
+  const target = state.selectedFirmwareVersion;
+  if (compareVersion(target, state.currentFirmwareVersion) > 0) return `升级为 ${target} 版本`;
+  if (compareVersion(target, state.currentFirmwareVersion) < 0) return `回退为 ${target} 版本`;
+  return '当前版本，无需操作';
+}
+
+function firmwareActionType() {
+  return compareVersion(state.selectedFirmwareVersion, state.currentFirmwareVersion) >= 0 ? 'upgrade' : 'rollback';
 }
 
 
@@ -148,23 +172,24 @@ function deviceRow(device, connected) {
 
 function firmware() {
   const d = state.currentDevice;
+  const actionType = firmwareActionType();
+  const actionText = firmwareActionText();
   return page(`${topBar('固件管理')}
     <h2 class="big-device">${d}</h2><div class="status">已连接</div>
-    <div class="info-grid mt-16"><div class="info-card card"><small>当前固件版本</small><strong>v1.0.8</strong><span class="badge">可升级</span></div><div class="info-card card"><small>最新版本</small><strong>v1.1.2</strong></div></div>
-    <section class="panel card"><h2 class="section-title">固件升级</h2><p>升级将更新设备到最新固件版本，性能优化、功能增强和问题修复。</p><button class="primary-btn full" data-action="confirm-upgrade">开始升级</button></section>
-    <section class="panel card"><h2 class="section-title">固件回退</h2><p>将设备回退到上一版本，可能解决兼容性问题。</p><label class="select-label" for="rollback-version">选择回退版本</label><select id="rollback-version" class="select-like mt-16"><option value="v1.0.7" ${state.rollbackVersion === 'v1.0.7' ? 'selected' : ''}>v1.0.7</option><option value="v1.0.6" ${state.rollbackVersion === 'v1.0.6' ? 'selected' : ''}>v1.0.6</option><option value="v1.0.5" ${state.rollbackVersion === 'v1.0.5' ? 'selected' : ''}>v1.0.5</option></select><button class="primary-btn full" data-action="confirm-rollback">开始回退</button></section>
-    <section class="panel card"><h2 class="section-title">升级说明</h2><ul class="note-list"><li>升级过程中断设备的当前功能，升级后设备将自动重启。</li><li>建议在电量大于50%或连接外部电源时升级。</li></ul></section>`, { noTab: true, scroll: true });
+    <div class="info-grid mt-16"><div class="info-card card"><small>当前固件版本</small><strong>${state.currentFirmwareVersion}</strong>${compareVersion(state.latestFirmwareVersion, state.currentFirmwareVersion) > 0 ? '<span class="badge">可升级</span>' : ''}</div><div class="info-card card"><small>最新版本</small><strong>${state.latestFirmwareVersion}</strong></div></div>
+    <section class="panel card"><h2 class="section-title">目标固件版本</h2><p>请选择需要切换的固件版本。高于当前版本时执行升级，低于当前版本时执行回退。</p><label class="select-label" for="firmware-version">选择目标版本</label><select id="firmware-version" class="select-like mt-16"><option value="v1.1.2" ${state.selectedFirmwareVersion === 'v1.1.2' ? 'selected' : ''}>v1.1.2（最新版本）</option><option value="v1.1.0" ${state.selectedFirmwareVersion === 'v1.1.0' ? 'selected' : ''}>v1.1.0</option><option value="v1.0.8" ${state.selectedFirmwareVersion === 'v1.0.8' ? 'selected' : ''}>v1.0.8</option><option value="v1.0.7" ${state.selectedFirmwareVersion === 'v1.0.7' ? 'selected' : ''}>v1.0.7</option><option value="v1.0.6" ${state.selectedFirmwareVersion === 'v1.0.6' ? 'selected' : ''}>v1.0.6</option></select><button class="${actionType === 'rollback' ? 'danger-btn' : 'primary-btn'} full" data-action="confirm-firmware-change" ${disabledAttr(state.selectedFirmwareVersion === state.currentFirmwareVersion)}>${actionText}</button></section>
+    <section class="panel card"><h2 class="section-title">升级说明</h2><ul class="note-list"><li>升级或回退过程中会中断设备当前功能，完成后设备将自动重启。</li><li>建议在电量大于50%或连接外部电源时操作。</li></ul></section>`, { noTab: true, scroll: true });
 }
 
 function firmwareProgress() {
   return page(`${topBar('固件升级', 'firmware', 'data-action="firmware-back"')}
-    <div class="big-device">${state.currentDevice}</div><p><strong>当前版本：</strong>v1.0.8</p><p><strong>目标版本：</strong>v1.1.2</p>
+    <div class="big-device">${state.currentDevice}</div><p><strong>当前版本：</strong>${state.firmwareSourceVersion}</p><p><strong>目标版本：</strong>${state.selectedFirmwareVersion}</p>
     <div class="progress-wrap"><div class="progress-fill" style="width:${state.firmwareProgress}%"></div></div><div class="percent">${state.firmwareProgress}%</div>
     <h2 class="section-title">正在传输固件...</h2><p class="desc">请保持设备靠近手机，升级过程中不要关闭 APP。</p>`, { noTab: true, progress: true });
 }
 
 function firmwareDone() {
-  return page(`${topBar('升级完成', 'firmware')}<div class="big-device">${state.currentDevice}</div><h2>${state.currentDevice} 已升级到最新版本</h2><p><strong>当前版本：</strong>v1.1.2</p><button class="primary-btn full" data-nav="firmware">完成</button>`, { noTab: true, progress: true });
+  return page(`${topBar('操作完成', 'firmware')}<div class="big-device">${state.currentDevice}</div><h2>${state.currentDevice} 已切换到目标版本</h2><p><strong>当前版本：</strong>${state.selectedFirmwareVersion}</p><button class="primary-btn full" data-nav="firmware">完成</button>`, { noTab: true, progress: true });
 }
 
 function deviceDetail() {
@@ -244,9 +269,9 @@ function bindViewEvents() {
   app.querySelectorAll('[data-file-id]').forEach((el) => el.addEventListener('change', () => toggleFileSelection(el.dataset.fileId)));
   app.querySelectorAll('[data-share]').forEach((el) => el.addEventListener('click', () => shareExport(el.dataset.share)));
   app.querySelectorAll('[data-toggle-event]').forEach((el) => el.addEventListener('click', () => toggleEvent(el.dataset.toggleEvent)));
-  const rollbackSelect = app.querySelector('#rollback-version');
-  if (rollbackSelect) {
-    rollbackSelect.addEventListener('change', (event) => { state.rollbackVersion = event.target.value; });
+  const firmwareSelect = app.querySelector('#firmware-version');
+  if (firmwareSelect) {
+    firmwareSelect.addEventListener('change', (event) => { state.selectedFirmwareVersion = event.target.value; render(); });
   }
   app.querySelectorAll('[data-action]').forEach((el) => el.addEventListener('click', () => handleAction(el.dataset.action)));
 }
@@ -255,8 +280,7 @@ function handleAction(action) {
   const actions = {
     'all-permission': () => { state.permissions.bluetooth = true; state.permissions.storage = true; navigate('home'); },
     scan: scanDevices,
-    'confirm-upgrade': confirmUpgrade,
-    'confirm-rollback': confirmRollback,
+    'confirm-firmware-change': confirmFirmwareChange,
     'firmware-back': () => showToast('升级过程中不建议退出。'),
     'start-collect': startCollect,
     'stop-collect': confirmStopCollect,
@@ -296,30 +320,29 @@ function confirmDisconnect(device) {
   ]);
 }
 
-function confirmUpgrade() {
+function confirmFirmwareChange() {
   if (!hasBluetoothPermission()) { showToast('请先开启蓝牙权限。'); return; }
-  showModal('确认升级固件？', '当前版本为 v1.0.8，目标版本为 v1.1.2。<br>升级过程中将自动重启设备，请确保设备电量充足。', [
+  const target = state.selectedFirmwareVersion;
+  const isRollback = compareVersion(target, state.currentFirmwareVersion) < 0;
+  const title = isRollback ? '确认回退固件？' : '确认升级固件？';
+  const body = isRollback
+    ? `当前版本为 ${state.currentFirmwareVersion}，目标版本为 ${target}。<br>回退可能解决兼容性问题，过程中设备将自动重启。`
+    : `当前版本为 ${state.currentFirmwareVersion}，目标版本为 ${target}。<br>升级过程中将自动重启设备，请确保设备电量充足。`;
+  showModal(title, body, [
     ['取消', 'secondary-btn', clearModal],
-    ['开始升级', 'primary-btn', () => { clearModal(); startFirmwareProgress(); }]
-  ]);
-}
-
-function confirmRollback() {
-  if (!hasBluetoothPermission()) { showToast('请先开启蓝牙权限。'); return; }
-  showModal('确认回退固件？', `将设备回退到 ${state.rollbackVersion}，可能解决兼容性问题。此处仅做弹窗模拟。`, [
-    ['取消', 'secondary-btn', clearModal],
-    ['开始回退', 'danger-btn', () => { clearModal(); showToast('固件回退已模拟完成'); }]
+    [firmwareActionText(), isRollback ? 'danger-btn' : 'primary-btn', () => { clearModal(); startFirmwareProgress(); }]
   ]);
 }
 
 function startFirmwareProgress() {
   clearInterval(state.firmwareTimer);
+  state.firmwareSourceVersion = state.currentFirmwareVersion;
   state.firmwareProgress = 0;
   navigate('firmwareProgress');
   state.firmwareTimer = setInterval(() => {
     state.firmwareProgress = Math.min(100, state.firmwareProgress + 4);
     if (state.view === 'firmwareProgress') render();
-    if (state.firmwareProgress >= 100) { clearInterval(state.firmwareTimer); navigate('firmwareDone'); }
+    if (state.firmwareProgress >= 100) { clearInterval(state.firmwareTimer); state.currentFirmwareVersion = state.selectedFirmwareVersion; navigate('firmwareDone'); }
   }, 180);
 }
 
