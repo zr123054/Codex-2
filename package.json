@@ -1,0 +1,55 @@
+{
+  "name": "fe25-test-app-demo",
+  "version": "1.0.0",
+  "description": "FE25 Test APP 免安装桌面原型 Demo",
+  "main": "main.js",
+  "private": true,
+  "author": "FE25 Demo Team",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win portable",
+    "dist:mac": "electron-builder --mac dir",
+    "dist:linux": "electron-builder --linux AppImage"
+  },
+  "build": {
+    "appId": "com.fe25.testapp.demo",
+    "productName": "FE25 Test APP",
+    "asar": true,
+    "files": [
+      "index.html",
+      "style.css",
+      "app.js",
+      "script.js",
+      "main.js",
+      "README.md",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "artifactName": "FE25-Test-APP-${version}-portable.${ext}"
+    },
+    "mac": {
+      "target": ["dir"],
+      "category": "public.app-category.developer-tools"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "category": "Utility"
+    }
+  },
+  "devDependencies": {
+    "electron": "^30.5.1",
+    "electron-builder": "^24.13.3"
+  }
+}
