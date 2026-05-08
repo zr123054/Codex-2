@@ -1,5 +1,28 @@
 const EVENTS = ['标准鱼讯', '疑似鱼讯', '确认中鱼', '疑似中鱼', '挂底', '脱钩', '触底', '断线', '手动刺鱼', '刺鱼中钩', '异常', '其他'];
 const EXPORT_DEVICES = ['E00-01', 'E00-02', 'E01-01', 'E03-01'];
+const EXPORT_FILES = {
+  'E00-01': [
+    { id: 'E0001-1', name: '2026-05-08_09-18-32_标准鱼讯.csv', size: '18.6 MB' },
+    { id: 'E0001-2', name: '2026-05-08_09-42-15_确认中鱼.csv', size: '24.3 MB' },
+    { id: 'E0001-3', name: '2026-05-08_10-06-28_脱钩.csv', size: '12.8 MB' },
+    { id: 'E0001-4', name: '2026-05-08_10-27-51_异常.csv', size: '9.7 MB' }
+  ],
+  'E00-02': [
+    { id: 'E0002-1', name: '2026-05-08_08-55-02_疑似鱼讯.csv', size: '16.1 MB' },
+    { id: 'E0002-2', name: '2026-05-08_09-31-40_触底.csv', size: '14.4 MB' },
+    { id: 'E0002-3', name: '2026-05-08_10-12-09_挂底.csv', size: '21.5 MB' }
+  ],
+  'E01-01': [
+    { id: 'E0101-1', name: '2026-05-07_16-18-21_手动刺鱼.csv', size: '11.2 MB' },
+    { id: 'E0101-2', name: '2026-05-07_16-39-44_刺鱼中钩.csv', size: '19.8 MB' },
+    { id: 'E0101-3', name: '2026-05-07_17-05-12_其他.csv', size: '8.5 MB' }
+  ],
+  'E03-01': [
+    { id: 'E0301-1', name: '2026-05-06_14-02-35_疑似中鱼.csv', size: '13.6 MB' },
+    { id: 'E0301-2', name: '2026-05-06_14-26-18_断线.csv', size: '10.9 MB' },
+    { id: 'E0301-3', name: '2026-05-06_15-14-33_确认中鱼.csv', size: '27.1 MB' }
+  ]
+};
 
 const state = {
   view: 'splash',
@@ -17,15 +40,16 @@ const state = {
   exportProgress: 0,
   exportTimer: null,
   exportRunning: false,
-  exportDevice: 'E00-02',
-  singleSelected: new Set(['E00-01']),
-  multiSelected: new Set(['E00-01', 'E00-02', 'E01-01']),
+  currentExportDevice: 'E00-01',
+  selectedFiles: new Set(),
+  lastExportCount: 0,
   eventEnabled: Object.fromEntries(EVENTS.map((name) => [name, true])),
   storageSize: '2.35 GB',
   recordBefore: '30',
   recordAfter: '3',
   scanTimeout: '10',
-  rollbackVersion: 'v1.0.7'
+  rollbackVersion: 'v1.0.7',
+  markHistory: []
 };
 
 const app = document.getElementById('app');
@@ -63,7 +87,7 @@ function render() {
   document.querySelector('.phone-shell').classList.toggle('is-dark', state.view === 'splash' || state.view === 'home');
   const views = {
     splash, permission, home, firmware, firmwareProgress, firmwareDone, deviceDetail,
-    exportHome, exportSingle, exportMulti, exportProgress, exportDone, settings, eventSettings
+    exportHome, exportSingle, exportFiles, exportProgress, exportDone, settings, eventSettings
   };
   app.innerHTML = views[state.view]();
   bindViewEvents();
@@ -128,7 +152,7 @@ function firmware() {
     <h2 class="big-device">${d}</h2><div class="status">已连接</div>
     <div class="info-grid mt-16"><div class="info-card card"><small>当前固件版本</small><strong>v1.0.8</strong><span class="badge">可升级</span></div><div class="info-card card"><small>最新版本</small><strong>v1.1.2</strong></div></div>
     <section class="panel card"><h2 class="section-title">固件升级</h2><p>升级将更新设备到最新固件版本，性能优化、功能增强和问题修复。</p><button class="primary-btn full" data-action="confirm-upgrade">开始升级</button></section>
-    <section class="panel card"><h2 class="section-title">固件回退</h2><p>将设备回退到上一版本，可能解决兼容性问题。</p><label class="select-label" for="rollback-version">选择回退版本</label><select id="rollback-version" class="select-like mt-16" data-action="rollback-select"><option value="v1.0.7" ${state.rollbackVersion === 'v1.0.7' ? 'selected' : ''}>v1.0.7</option><option value="v1.0.6" ${state.rollbackVersion === 'v1.0.6' ? 'selected' : ''}>v1.0.6</option><option value="v1.0.5" ${state.rollbackVersion === 'v1.0.5' ? 'selected' : ''}>v1.0.5</option></select><button class="primary-btn full" data-action="confirm-rollback">开始回退</button></section>
+    <section class="panel card"><h2 class="section-title">固件回退</h2><p>将设备回退到上一版本，可能解决兼容性问题。</p><label class="select-label" for="rollback-version">选择回退版本</label><select id="rollback-version" class="select-like mt-16"><option value="v1.0.7" ${state.rollbackVersion === 'v1.0.7' ? 'selected' : ''}>v1.0.7</option><option value="v1.0.6" ${state.rollbackVersion === 'v1.0.6' ? 'selected' : ''}>v1.0.6</option><option value="v1.0.5" ${state.rollbackVersion === 'v1.0.5' ? 'selected' : ''}>v1.0.5</option></select><button class="primary-btn full" data-action="confirm-rollback">开始回退</button></section>
     <section class="panel card"><h2 class="section-title">升级说明</h2><ul class="note-list"><li>升级过程中断设备的当前功能，升级后设备将自动重启。</li><li>建议在电量大于50%或连接外部电源时升级。</li></ul></section>`, { noTab: true, scroll: true });
 }
 
@@ -150,7 +174,7 @@ function deviceDetail() {
   return page(`${topBar(d)}<div class="status status-dot">已连接</div>
     ${bluetoothDisabled ? '<div class="permission-tip card">蓝牙权限未开启，数据采集和事件标记暂不可用。</div>' : ''}
     <section class="action-card card ${bluetoothDisabled ? 'disabled-card' : ''}"><div class="action-head"><span>设备操作（${run ? 1 : 0}）</span>${run ? `<span class="setting-value">采集时间：${formatTime(state.collectSeconds)}</span>` : ''}</div><div class="button-grid"><button class="${run ? 'success-btn' : 'primary-btn'}" data-action="start-collect" ${disabledAttr(run || bluetoothDisabled)}>${run ? '采集中...' : '开始采集'}</button><button class="danger-btn" data-action="stop-collect" ${disabledAttr(!run || bluetoothDisabled)}>停止采集</button></div></section>
-    <section class="action-card card ${bluetoothDisabled ? 'disabled-card' : ''}"><h2 class="section-title">事件标记</h2><div class="events-grid">${EVENTS.map((e) => `<button class="event-btn" data-event="${e}" ${disabledAttr(bluetoothDisabled)}>${e}</button>`).join('')}</div></section>
+    <section class="action-card card ${bluetoothDisabled ? 'disabled-card' : ''}"><div class="action-head"><span>事件标记</span><button class="link-btn compact-link" data-action="delete-last-mark" ${disabledAttr(bluetoothDisabled || !run || !state.markHistory.length)}>删除上一次标记</button></div><div class="events-grid">${EVENTS.map((e) => `<button class="event-btn" data-event="${e}" ${disabledAttr(bluetoothDisabled)}>${e}</button>`).join('')}</div></section>
     <section class="action-card card"><h2 class="section-title">实时数据</h2><div class="data-grid">${dataCards(run)}</div></section>`, { noTab: true });
 }
 
@@ -162,34 +186,37 @@ function dataCards(run) {
 function exportHome() {
   const storageDisabled = !hasStoragePermission();
   const navSingle = storageDisabled ? '' : 'data-nav="exportSingle"';
-  const navMulti = storageDisabled ? '' : 'data-nav="exportMulti"';
   return page(`<h1 class="page-title">数据导出</h1><h2 class="list-title">选择导出方式</h2><p class="desc">请选择导出的设备数据源</p>
     ${storageDisabled ? '<div class="permission-tip card">存储权限未开启，数据导出功能暂不可用。</div>' : ''}
-    <article class="export-card card ${storageDisabled ? 'disabled-card' : ''}" ${navSingle}><div class="home-row"><div><h2>按设备导出</h2><p class="desc">导出单个设备的所有记录数据</p></div></div></article>
-    <article class="export-card card ${storageDisabled ? 'disabled-card' : ''}" ${navMulti}><div class="home-row"><div><h2>多设备导出</h2><p class="desc">导出多个设备的合并记录数据</p></div></div></article>`, { tab: 'export' });
+    <article class="export-card card ${storageDisabled ? 'disabled-card' : ''}" ${navSingle}><div class="home-row"><div><h2>按设备导出</h2><p class="desc">选择单个设备，进入该设备存储文件夹后导出采集数据文件</p></div></div></article>`, { tab: 'export' });
 }
 
-function exportSelect(mode) {
-  const isMulti = mode === 'multi';
-  const selected = isMulti ? state.multiSelected : state.singleSelected;
-  const title = isMulti ? '多设备导出' : '按设备导出';
+function exportSingle() {
   const storageDisabled = !hasStoragePermission();
-  return page(`${topBar(title, 'exportHome')}<div class="segment"><button class="${!isMulti ? 'active' : ''}" data-nav="exportSingle" ${disabledAttr(storageDisabled)}>按设备导出</button><button class="${isMulti ? 'active' : ''}" data-nav="exportMulti" ${disabledAttr(storageDisabled)}>多设备导出</button></div>
-    ${storageDisabled ? '<div class="permission-tip card">存储权限未开启，无法选择设备或开始导出。</div>' : ''}
-    <h2 class="list-title">${isMulti ? '选择要导出的设备' : '选择导出设备'}</h2><p class="desc">${isMulti ? '可同时选择多个设备的数据进行导出' : '请选择需要导出的设备（单选）'}</p>
-    ${EXPORT_DEVICES.map((d) => `<article class="select-row card ${selected.has(d) ? 'selected-row' : ''} ${storageDisabled ? 'disabled-card' : ''}" ${storageDisabled ? '' : `data-export-device="${d}" data-mode="${mode}"`}><strong class="device-name">${d}</strong><span class="selected-label">${selected.has(d) ? '已选' : ''}</span></article>`).join('')}
-    <div class="tip-card card"><strong>${isMulti ? '导出数据将保存到综合数据包' : '导出范围受所选设备限制'}</strong><br>${isMulti ? '导出完成后，应用将生成一个包含所有选中设备数据的 FE25 文件夹数据包。' : '开始导出后，应用将仅导出选中设备。导出期间可在传输状态中查看进度。'}</div>
-    <button class="primary-btn full" data-action="start-export" ${disabledAttr(storageDisabled || !selected.size)}>开始导出</button>`, { noTab: true });
+  return page(`${topBar('按设备导出', 'exportHome')}
+    ${storageDisabled ? '<div class="permission-tip card">存储权限未开启，无法进入设备文件夹。</div>' : ''}
+    <h2 class="list-title">选择导出设备</h2><p class="desc">请选择需要查看存储文件夹的设备</p>
+    ${EXPORT_DEVICES.map((d) => `<article class="select-row card ${storageDisabled ? 'disabled-card' : ''}" ${storageDisabled ? '' : `data-open-folder="${d}"`}><strong class="device-name">${d}</strong><span class="selected-label">打开文件夹</span></article>`).join('')}
+    <div class="tip-card card"><strong>设备存储文件夹</strong><br>进入设备后可查看全部采集数据文件，并支持多选导出或多选删除。</div>`, { noTab: true, scroll: true });
 }
-const exportSingle = () => exportSelect('single');
-const exportMulti = () => exportSelect('multi');
+
+function exportFiles() {
+  const device = state.currentExportDevice;
+  const files = EXPORT_FILES[device] || [];
+  const selectedCount = state.selectedFiles.size;
+  return page(`${topBar(`${device} 文件夹`, 'exportSingle')}
+    <h2 class="list-title">采集数据文件</h2><p class="desc">文件名包含采集时间与标记事件类型，可多选导出或删除。</p>
+    <div class="folder-summary card"><strong>${device}</strong><span>${files.length} 个文件</span></div>
+    <div class="file-list">${files.map((file) => `<label class="file-row card ${state.selectedFiles.has(file.id) ? 'selected-row' : ''}"><input type="checkbox" data-file-id="${file.id}" ${state.selectedFiles.has(file.id) ? 'checked' : ''}><span class="file-meta"><strong>${file.name}</strong><small>${file.size}</small></span></label>`).join('')}</div>
+    <div class="sticky-actions three-actions"><button class="secondary-btn" data-action="select-all-files" ${files.length ? '' : 'disabled'}>${selectedCount === files.length && files.length ? '取消全选' : '全选'}</button><button class="primary-btn" data-action="start-export" ${selectedCount ? '' : 'disabled'}>导出 ${selectedCount || ''}</button><button class="danger-btn" data-action="delete-files" ${selectedCount ? '' : 'disabled'}>删除</button></div>`, { noTab: true, scroll: true });
+}
 
 function exportProgress() {
-  return page(`<h1 class="page-title">数据导出中</h1><div class="percent">${state.exportProgress}%</div><div class="progress-wrap"><div class="progress-fill" style="width:${state.exportProgress}%"></div></div><h2>正在生成数据包...</h2><p class="desc">当前设备：${state.exportDevice}</p><p class="desc">请勿关闭 APP。</p><button class="ghost-btn full" data-action="background-export">后台导出</button>`, { noTab: true, progress: true });
+  return page(`<h1 class="page-title">数据导出中</h1><div class="percent">${state.exportProgress}%</div><div class="progress-wrap"><div class="progress-fill" style="width:${state.exportProgress}%"></div></div><h2>正在生成数据包...</h2><p class="desc">导出文件：${state.lastExportCount || state.selectedFiles.size} 个</p><p class="desc">请勿关闭 APP。</p><button class="ghost-btn full" data-action="background-export">后台导出</button>`, { noTab: true, progress: true });
 }
 
 function exportDone() {
-  return page(`${topBar('导出完成', 'exportHome')}<div class="big-device">FE25数据包</div><h2>数据已成功导出</h2><p><strong>导出文件：</strong>FE25_Export.zip</p><button class="primary-btn full" data-nav="exportHome">完成</button>`, { noTab: true, progress: true });
+  return page(`${topBar('导出完成', 'exportFiles')}<div class="big-device">FE25数据包</div><h2>数据已成功导出</h2><p><strong>导出文件：</strong>FE25_${state.currentExportDevice}_Export.zip</p><section class="panel card share-panel"><h2 class="section-title">分享导出文件</h2><div class="share-grid"><button class="secondary-btn" data-share="微信">微信</button><button class="secondary-btn" data-share="飞书">飞书</button><button class="secondary-btn" data-share="钉钉">钉钉</button><button class="secondary-btn" data-share="邮箱">邮箱</button></div></section><button class="primary-btn full" data-nav="exportHome">完成</button>`, { noTab: true, progress: true });
 }
 
 function settings() {
@@ -213,7 +240,9 @@ function bindViewEvents() {
   app.querySelectorAll('[data-connect]').forEach((el) => el.addEventListener('click', (e) => { e.stopPropagation(); moveDevice(el.dataset.connect, 'available', 'connected'); showToast(`${el.dataset.connect} 已连接`); }));
   app.querySelectorAll('[data-disconnect]').forEach((el) => el.addEventListener('click', (e) => { e.stopPropagation(); confirmDisconnect(el.dataset.disconnect); }));
   app.querySelectorAll('[data-event]').forEach((el) => el.addEventListener('click', () => markEvent(el.dataset.event)));
-  app.querySelectorAll('[data-export-device]').forEach((el) => el.addEventListener('click', () => toggleExportDevice(el.dataset.mode, el.dataset.exportDevice)));
+  app.querySelectorAll('[data-open-folder]').forEach((el) => el.addEventListener('click', () => openDeviceFolder(el.dataset.openFolder)));
+  app.querySelectorAll('[data-file-id]').forEach((el) => el.addEventListener('change', () => toggleFileSelection(el.dataset.fileId)));
+  app.querySelectorAll('[data-share]').forEach((el) => el.addEventListener('click', () => shareExport(el.dataset.share)));
   app.querySelectorAll('[data-toggle-event]').forEach((el) => el.addEventListener('click', () => toggleEvent(el.dataset.toggleEvent)));
   const rollbackSelect = app.querySelector('#rollback-version');
   if (rollbackSelect) {
@@ -232,6 +261,9 @@ function handleAction(action) {
     'start-collect': startCollect,
     'stop-collect': confirmStopCollect,
     'start-export': startExport,
+    'select-all-files': toggleSelectAllFiles,
+    'delete-files': confirmDeleteFiles,
+    'delete-last-mark': deleteLastMark,
     'background-export': () => { navigate('exportHome'); showToast('导出任务已转入后台'); },
     'record-modal': recordModal,
     'scan-modal': scanModal,
@@ -295,6 +327,7 @@ function startCollect() {
   if (!hasBluetoothPermission()) { showToast('请先开启蓝牙权限。'); return; }
   state.collecting = true;
   state.collectSeconds = 0;
+  state.markHistory = [];
   clearInterval(state.collectTimer);
   state.collectTimer = setInterval(() => { state.collectSeconds += 1; if (state.view === 'deviceDetail') render(); }, 1000);
   render();
@@ -317,25 +350,68 @@ function stopCollect() {
 
 function markEvent(name) {
   if (!state.collecting) { showToast('请先开始采集。'); return; }
-  showToast(`已标记：${name}　　时间：${formatTime(state.collectSeconds)}`);
+  const time = formatTime(state.collectSeconds);
+  state.markHistory.push({ name, time });
+  if (state.view === 'deviceDetail') render();
+  showToast(`已标记：${name}　　时间：${time}`);
 }
 
-function toggleExportDevice(mode, device) {
-  if (!hasStoragePermission()) { showToast('请先开启存储权限。'); return; }
-  if (mode === 'single') {
-    // 按设备导出为单选：点击任意设备后只保留当前设备选中。
-    state.singleSelected = new Set([device]);
-    render();
-    return;
-  }
+function deleteLastMark() {
+  if (!state.collecting) { showToast('请先开始采集。'); return; }
+  if (!state.markHistory.length) { showToast('暂无可删除的标记事件。'); return; }
+  const removed = state.markHistory.pop();
+  if (state.view === 'deviceDetail') render();
+  showToast(`已删除上一次标记：${removed.name}　　时间：${removed.time}`);
+}
 
-  const set = state.multiSelected;
-  set.has(device) ? set.delete(device) : set.add(device);
+function openDeviceFolder(device) {
+  if (!hasStoragePermission()) { showToast('请先开启存储权限。'); return; }
+  state.currentExportDevice = device;
+  state.selectedFiles = new Set();
+  navigate('exportFiles');
+}
+
+function toggleFileSelection(fileId) {
+  state.selectedFiles.has(fileId) ? state.selectedFiles.delete(fileId) : state.selectedFiles.add(fileId);
   render();
+}
+
+function toggleSelectAllFiles() {
+  const files = EXPORT_FILES[state.currentExportDevice] || [];
+  if (state.selectedFiles.size === files.length) {
+    state.selectedFiles = new Set();
+  } else {
+    state.selectedFiles = new Set(files.map((file) => file.id));
+  }
+  render();
+}
+
+function confirmDeleteFiles() {
+  const count = state.selectedFiles.size;
+  if (!count) { showToast('请先选择文件。'); return; }
+  showModal('删除选中文件？', `将删除 ${count} 个采集数据文件，此操作仅为 Demo 模拟。`, [
+    ['取消', 'secondary-btn', clearModal],
+    ['确认删除', 'danger-btn', () => { clearModal(); deleteSelectedFiles(); }]
+  ]);
+}
+
+function deleteSelectedFiles() {
+  const files = EXPORT_FILES[state.currentExportDevice] || [];
+  EXPORT_FILES[state.currentExportDevice] = files.filter((file) => !state.selectedFiles.has(file.id));
+  const count = state.selectedFiles.size;
+  state.selectedFiles = new Set();
+  render();
+  showToast(`已删除 ${count} 个文件。`);
+}
+
+function shareExport(channel) {
+  showToast(`已模拟分享到${channel}。`);
 }
 
 function startExport() {
   if (!hasStoragePermission()) { showToast('请先开启存储权限。'); return; }
+  if (!state.selectedFiles.size) { showToast('请先选择需要导出的文件。'); return; }
+  state.lastExportCount = state.selectedFiles.size;
   clearInterval(state.exportTimer);
   state.exportProgress = 0;
   state.exportRunning = true;
