@@ -204,10 +204,13 @@ function firmware() {
 }
 
 function firmwareProgress() {
-  return page(`${topBar('固件升级', 'firmware', 'data-action="firmware-back"')}
+  const isRollback = compareVersion(state.selectedFirmwareVersion, state.firmwareSourceVersion) < 0;
+  const title = isRollback ? '固件回退' : '固件升级';
+  const notice = isRollback ? '回退' : '升级';
+  return page(`${topBar(title, 'firmware', 'data-action="firmware-back"')}
     <div class="big-device">${state.currentDevice}</div><p><strong>当前版本：</strong>${state.firmwareSourceVersion}</p><p><strong>目标版本：</strong>${state.selectedFirmwareVersion}</p>
     <div class="progress-wrap"><div class="progress-fill" style="width:${state.firmwareProgress}%"></div></div><div class="percent">${state.firmwareProgress}%</div>
-    <h2 class="section-title">正在传输固件...</h2><p class="desc">请保持设备靠近手机，升级过程中不要关闭 APP。</p>`, { noTab: true, progress: true });
+    <h2 class="section-title">正在传输固件...</h2><p class="desc">请保持设备靠近手机，${notice}过程中不要关闭 APP。</p>`, { noTab: true, progress: true });
 }
 
 function firmwareDone() {
@@ -260,7 +263,7 @@ function exportProgress() {
 }
 
 function exportDone() {
-  return page(`${topBar('导出完成', 'exportFiles')}<div class="big-device">FE25数据包</div><h2>数据已成功导出</h2><p><strong>导出文件：</strong>FE25_${state.currentExportDevice}_Export.zip</p><section class="panel card share-panel"><h2 class="section-title">分享导出文件</h2><div class="share-grid"><button class="secondary-btn" data-share="微信">微信</button><button class="secondary-btn" data-share="飞书">飞书</button><button class="secondary-btn" data-share="钉钉">钉钉</button><button class="secondary-btn" data-share="邮箱">邮箱</button></div></section><button class="primary-btn full" data-nav="exportSingle">完成</button>`, { noTab: true, progress: true });
+  return page(`<div class="top-bar title-only"><span></span><h1>导出完成</h1><span></span></div><div class="big-device">FE25数据包</div><h2>数据已成功导出</h2><p><strong>导出文件：</strong>FE25_${state.currentExportDevice}_Export.zip</p><section class="panel card share-panel"><h2 class="section-title">分享导出文件</h2><div class="share-grid"><button class="secondary-btn" data-share="微信">微信</button><button class="secondary-btn" data-share="飞书">飞书</button><button class="secondary-btn" data-share="钉钉">钉钉</button><button class="secondary-btn" data-share="邮箱">邮箱</button></div></section><button class="primary-btn full" data-nav="exportSingle">完成</button>`, { noTab: true, progress: true });
 }
 
 function settings() {
