@@ -275,6 +275,8 @@ button:disabled { cursor: not-allowed; }
 .file-meta small { color: var(--muted); font-weight: 700; }
 .folder-summary { min-height: 52px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
 .three-actions { grid-template-columns: .8fr 1fr .8fr; }
+.sticky-actions.three-actions { grid-template-columns: .8fr 1fr .8fr; align-items: center; }
+.sticky-actions.three-actions button { min-width: 0; padding: 0 10px; }
 .share-panel { width: 100%; }
 .share-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 12px; }
 
@@ -292,7 +294,15 @@ button:disabled { cursor: not-allowed; }
 .export-card { padding: 22px 18px; margin-top: 24px; background: linear-gradient(135deg, #f3f8ff, #fff); }
 .export-card h2 { margin-top: 0; }
 .chevron-text { color: var(--primary); font-weight: 900; font-size: 24px; }
-.chevron-only { color: var(--primary); font-size: 24px; font-weight: 900; line-height: 1; }
+.chevron-only {
+  width: 9px;
+  height: 9px;
+  border-top: 2px solid var(--primary);
+  border-right: 2px solid var(--primary);
+  transform: rotate(45deg);
+  border-radius: 1px;
+  opacity: .95;
+}
 .clickable-row { cursor: pointer; }
 .static-row { cursor: default; }
 .danger-text { color: var(--danger); }

@@ -50,7 +50,6 @@ const state = {
   storageSize: '2.35 GB',
   recordBefore: '30',
   recordAfter: '3',
-  scanTimeout: '10',
   selectedFirmwareVersion: 'v1.1.2',
   markHistory: []
 };
@@ -242,11 +241,10 @@ function exportDone() {
 }
 
 function settings() {
-  const bluetoothDisabled = !hasBluetoothPermission();
   const storageDisabled = !hasStoragePermission();
   return page(`<h1 class="page-title">设置</h1>
-    <section class="settings-group card"><article class="setting-row clickable-row" data-nav="eventSettings"><strong>事件标记设置</strong><span class="chevron-only">&gt;</span></article><article class="setting-row clickable-row" data-action="record-modal"><strong>记录区间设置</strong><span class="chevron-only">&gt;</span></article><article class="setting-row clickable-row ${bluetoothDisabled ? 'disabled-card' : ''}" ${bluetoothDisabled ? '' : 'data-action="scan-modal"'}><strong>蓝牙扫描超时时间</strong><span class="setting-value">${state.scanTimeout} 秒</span></article></section>
-    <section class="settings-group card"><article class="setting-row static-row"><strong>数据设置</strong><span></span></article><article class="setting-row ${storageDisabled ? 'disabled-card' : ''}"><strong>当前存储路径</strong><span class="setting-value">内部存储 &gt; FE25Test</span></article><article class="setting-row clickable-row ${storageDisabled ? 'disabled-card' : ''}" ${storageDisabled ? '' : 'data-action="clear-data"'}><strong>清理本地测试数据</strong><span class="setting-value danger-text">${state.storageSize}</span></article></section>
+    <section class="settings-group card"><article class="setting-row clickable-row" data-nav="eventSettings"><strong>事件标记设置</strong><span class="chevron-only"></span></article><article class="setting-row clickable-row" data-action="record-modal"><strong>记录区间设置</strong><span class="chevron-only"></span></article></section>
+    <section class="settings-group card"><article class="setting-row ${storageDisabled ? 'disabled-card' : ''}"><strong>当前存储路径</strong><span class="setting-value">内部存储 &gt; FE25Test</span></article><article class="setting-row clickable-row ${storageDisabled ? 'disabled-card' : ''}" ${storageDisabled ? '' : 'data-action="clear-data"'}><strong>清理缓存</strong><span class="setting-value danger-text">${state.storageSize}</span></article></section>
     <section class="settings-group card"><article class="setting-row static-row"><strong>关于</strong><span></span></article><article class="setting-row"><strong>APP名称</strong><span class="setting-value">FE25 Test APP</span></article><article class="setting-row"><strong>版本号</strong><span class="setting-value">1.0.0.x</span></article></section>`, { tab: 'settings' });
 }
 
@@ -287,7 +285,6 @@ function handleAction(action) {
     'delete-last-mark': deleteLastMark,
     'background-export': () => { navigate('exportSingle'); showToast('导出任务已转入后台'); },
     'record-modal': recordModal,
-    'scan-modal': scanModal,
     'clear-data': clearDataModal,
     'event-default': () => { EVENTS.forEach((e) => state.eventEnabled[e] = true); render(); },
     'event-save': () => { navigate('settings'); showToast('事件标记设置已保存。'); }
@@ -467,20 +464,12 @@ function recordModal() {
   };
 }
 
-function scanModal() {
-  if (!hasBluetoothPermission()) { showToast('请先开启蓝牙权限。'); return; }
-  showModal('蓝牙扫描超时时间', '当前超时时间为 10 秒。此 Demo 使用固定模拟值，不连接真实蓝牙设备。', [
-    ['取消', 'secondary-btn', clearModal],
-    ['确定', 'primary-btn', () => { clearModal(); showToast('扫描超时时间已保存。'); }]
-  ]);
-}
-
 function clearDataModal() {
   if (!hasStoragePermission()) { showToast('请先开启存储权限。'); return; }
   if (state.collecting) { showToast('当前存在采集任务，请停止采集后再清理。'); return; }
-  showModal('清理本地测试数据？', `当前本地测试数据总量 ${state.storageSize}。<br>清理后数据不可恢复，请确认已完成导出。`, [
+  showModal('清理缓存？', `当前缓存数据总量 ${state.storageSize}。<br>清理后缓存不可恢复，请确认已完成导出。`, [
     ['取消', 'secondary-btn', clearModal],
-    ['确认清理', 'danger-btn', () => { state.storageSize = '0 MB'; clearModal(); render(); showToast('清理完成。'); }]
+    ['确认清理', 'danger-btn', () => { state.storageSize = '0 MB'; clearModal(); render(); showToast('缓存清理完成。'); }]
   ]);
 }
 
