@@ -48,6 +48,7 @@ const state = {
   lastExportCount: 0,
   eventEnabled: Object.fromEntries(EVENTS.map((name) => [name, true])),
   storageSize: '2.35 GB',
+  storagePath: '内部存储 > FE25Test',
   recordBefore: '30',
   recordAfter: '3',
   selectedFirmwareVersion: 'v1.1.2',
@@ -82,6 +83,15 @@ function grantPermission(permission) {
 
 function disabledAttr(condition) {
   return condition ? 'disabled aria-disabled="true"' : '';
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 function compareVersion(a, b) {
@@ -230,7 +240,7 @@ function exportSingle(asRoot = false) {
   return page(`${header}
     ${storageDisabled ? '<div class="permission-tip card">存储权限未开启，无法进入设备文件夹。</div>' : ''}
     <h2 class="list-title">选择导出设备</h2><p class="desc">请选择需要查看存储文件夹的设备</p>
-    ${EXPORT_DEVICES.map((d) => `<article class="select-row card ${storageDisabled ? 'disabled-card' : ''}" ${storageDisabled ? '' : `data-open-folder="${d}"`}><strong class="device-name">${d}</strong><span class="selected-label">打开文件夹</span></article>`).join('')}
+    ${EXPORT_DEVICES.map((d) => `<article class="select-row card clickable-row ${storageDisabled ? 'disabled-card' : ''}" ${storageDisabled ? '' : `data-open-folder="${d}"`}><strong class="device-name">${d}</strong><span class="chevron-only" aria-hidden="true"></span></article>`).join('')}
     <div class="tip-card card"><strong>设备存储文件夹</strong><br>进入设备后可查看全部采集数据文件，并支持多选导出或多选删除。</div>`, { noTab: !asRoot, tab: asRoot ? 'export' : '', scroll: true });
 }
 
@@ -257,7 +267,7 @@ function settings() {
   const storageDisabled = !hasStoragePermission();
   return page(`<h1 class="page-title">设置</h1>
     <section class="settings-group card"><article class="setting-row clickable-row" data-nav="eventSettings"><strong>事件标记设置</strong><span class="chevron-only"></span></article><article class="setting-row clickable-row" data-action="record-modal"><strong>记录区间设置</strong><span class="chevron-only"></span></article></section>
-    <section class="settings-group card"><article class="setting-row ${storageDisabled ? 'disabled-card' : ''}"><strong>当前存储路径</strong><span class="setting-value">内部存储 &gt; FE25Test</span></article><article class="setting-row clickable-row ${storageDisabled ? 'disabled-card' : ''}" ${storageDisabled ? '' : 'data-action="clear-data"'}><strong>清理缓存</strong><span class="setting-value danger-text">${state.storageSize}</span></article></section>
+    <section class="settings-group card"><article class="setting-row clickable-row ${storageDisabled ? 'disabled-card' : ''}" ${storageDisabled ? '' : 'data-action="storage-modal"'}><strong>当前存储路径</strong><span class="value-with-chevron"><span class="setting-value">${escapeHtml(state.storagePath)}</span>${storageDisabled ? '' : '<span class="chevron-only" aria-hidden="true"></span>'}</span></article><article class="setting-row clickable-row ${storageDisabled ? 'disabled-card' : ''}" ${storageDisabled ? '' : 'data-action="clear-data"'}><strong>清理缓存</strong><span class="setting-value danger-text">${state.storageSize}</span></article></section>
     <section class="settings-group card"><article class="setting-row static-row"><strong>关于</strong><span></span></article><article class="setting-row"><strong>APP名称</strong><span class="setting-value">FE25 Test APP</span></article><article class="setting-row"><strong>版本号</strong><span class="setting-value">1.0.0.x</span></article></section>`, { tab: 'settings' });
 }
 
@@ -298,6 +308,7 @@ function handleAction(action) {
     'delete-last-mark': deleteLastMark,
     'background-export': () => { navigate('exportSingle'); showToast('导出任务已转入后台'); },
     'record-modal': recordModal,
+    'storage-modal': storagePathModal,
     'clear-data': clearDataModal,
     'event-default': () => { EVENTS.forEach((e) => state.eventEnabled[e] = true); render(); },
     'event-save': () => { navigate('settings'); showToast('事件标记设置已保存。'); }
@@ -474,6 +485,30 @@ function recordModal() {
     const ok2 = validateRange(after, 1, 30, 'after-error');
     if (!ok1 || !ok2) return;
     state.recordBefore = before; state.recordAfter = after; clearModal(); showToast('记录区间设置已保存。');
+  };
+}
+
+
+function storagePathModal() {
+  if (!hasStoragePermission()) { showToast('请先开启存储权限。'); return; }
+  const paths = ['内部存储 > FE25Test', '内部存储 > Download > FE25Test', '外部存储 > FE25Test'];
+  const current = state.storagePath;
+  modalRoot.innerHTML = `<div class="modal-mask"><div class="modal"><h2>调整存储位置</h2>
+    <p>请选择或输入采集数据文件的保存位置。</p>
+    <div class="path-options">${paths.map((path) => `<label class="path-option"><input type="radio" name="storage-path" value="${escapeHtml(path)}" ${path === current ? 'checked' : ''}><span>${escapeHtml(path)}</span></label>`).join('')}</div>
+    <div class="form-row"><label>自定义路径</label><div class="input-unit"><input id="custom-path-input" value="${paths.includes(current) ? '' : escapeHtml(current)}" placeholder="例如：内部存储 > FE25Data"></div><div class="error-text" id="path-error"></div></div>
+    <div class="modal-actions"><button class="secondary-btn" id="modal-cancel">取消</button><button class="primary-btn" id="path-save">确定</button></div></div></div>`;
+  document.getElementById('modal-cancel').onclick = clearModal;
+  document.getElementById('path-save').onclick = () => {
+    const custom = document.getElementById('custom-path-input').value.trim();
+    const selected = modalRoot.querySelector('input[name="storage-path"]:checked');
+    const nextPath = custom || selected?.value || '';
+    const error = document.getElementById('path-error');
+    if (!nextPath) { error.textContent = '请选择或输入存储路径。'; return; }
+    state.storagePath = nextPath;
+    clearModal();
+    render();
+    showToast('存储位置已更新。');
   };
 }
 
