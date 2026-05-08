@@ -67,6 +67,19 @@ function hasStoragePermission() {
   return state.permissions.storage;
 }
 
+function hasAllPermissions() {
+  return hasBluetoothPermission() && hasStoragePermission();
+}
+
+function grantPermission(permission) {
+  state.permissions[permission] = true;
+  if (hasAllPermissions()) {
+    navigate('home');
+    return;
+  }
+  render();
+}
+
 function disabledAttr(condition) {
   return condition ? 'disabled aria-disabled="true"' : '';
 }
@@ -254,7 +267,7 @@ function eventSettings() {
 
 function bindViewEvents() {
   app.querySelectorAll('[data-nav]').forEach((el) => el.addEventListener('click', (e) => navigate(e.currentTarget.dataset.nav)));
-  app.querySelectorAll('[data-permission]').forEach((el) => el.addEventListener('click', () => { state.permissions[el.dataset.permission] = true; render(); }));
+  app.querySelectorAll('[data-permission]').forEach((el) => el.addEventListener('click', () => grantPermission(el.dataset.permission)));
   app.querySelectorAll('[data-device-row]').forEach((el) => el.addEventListener('click', (e) => { if (e.target.tagName !== 'BUTTON') navigate('deviceDetail', { currentDevice: el.dataset.deviceRow }); }));
   app.querySelectorAll('[data-upgrade]').forEach((el) => el.addEventListener('click', (e) => { e.stopPropagation(); navigate('firmware', { currentDevice: el.dataset.upgrade }); }));
   app.querySelectorAll('[data-connect]').forEach((el) => el.addEventListener('click', (e) => { e.stopPropagation(); moveDevice(el.dataset.connect, 'available', 'connected'); showToast(`${el.dataset.connect} 已连接`); }));
