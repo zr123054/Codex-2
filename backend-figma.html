@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FE25 Test APP 后端交付 Figma Board</title>
+  <style>
+    :root {
+      --blue: #176cff;
+      --navy: #061a4f;
+      --muted: #6d7894;
+      --line: #dfe7f5;
+      --soft: #f6f9ff;
+      --green: #1fa65b;
+      --red: #e64b4b;
+      --orange: #f59e0b;
+      --shadow: 0 18px 45px rgba(16, 42, 94, .10);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--navy);
+      background: #eef3fb;
+    }
+    .board {
+      min-width: 1440px;
+      padding: 48px;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+    .hero-card, .legend, .swimlane, .api-card, .entity-card, .flow-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+    }
+    .hero-card { padding: 36px; }
+    .eyebrow { color: var(--blue); font-size: 16px; font-weight: 800; letter-spacing: .08em; }
+    h1 { margin: 10px 0 12px; font-size: 42px; line-height: 1.12; }
+    h2 { margin: 0 0 14px; font-size: 24px; }
+    h3 { margin: 0 0 10px; font-size: 18px; }
+    p { margin: 0; color: var(--muted); line-height: 1.7; }
+    .meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 28px; }
+    .meta { border-radius: 18px; background: var(--soft); padding: 14px; border: 1px solid var(--line); }
+    .meta strong { display: block; font-size: 22px; margin-bottom: 4px; }
+    .legend { padding: 28px; }
+    .legend-list { display: grid; gap: 12px; }
+    .legend-item { display: flex; gap: 12px; align-items: center; color: var(--muted); font-weight: 650; }
+    .dot { width: 12px; height: 12px; border-radius: 999px; background: var(--blue); }
+    .dot.green { background: var(--green); }
+    .dot.red { background: var(--red); }
+    .dot.orange { background: var(--orange); }
+    .section-title { display: flex; align-items: center; justify-content: space-between; margin: 38px 0 18px; }
+    .section-title h2 { margin: 0; font-size: 30px; }
+    .tag { display: inline-flex; align-items: center; border-radius: 999px; padding: 7px 12px; background: #eaf2ff; color: var(--blue); font-size: 13px; font-weight: 800; }
+    .lanes { display: grid; gap: 22px; }
+    .swimlane { padding: 24px; }
+    .lane-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 18px; gap: 20px; }
+    .frames { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    .phone {
+      min-height: 420px;
+      border: 10px solid #121821;
+      border-radius: 38px;
+      background: #fff;
+      padding: 22px 18px;
+      box-shadow: 0 14px 30px rgba(8, 18, 42, .12);
+      position: relative;
+      overflow: hidden;
+    }
+    .phone::before { content: ""; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 90px; height: 26px; background: #07101c; border-radius: 999px; }
+    .phone .top { display: flex; justify-content: space-between; align-items: center; margin-top: 40px; margin-bottom: 26px; font-weight: 800; }
+    .back { color: var(--blue); }
+    .title { font-size: 20px; font-weight: 900; text-align: center; }
+    .screen-title { font-size: 26px; font-weight: 900; margin: 20px 0 14px; }
+    .card { border: 1px solid var(--line); border-radius: 18px; padding: 14px; margin: 10px 0; background: #fff; }
+    .row { display: flex; justify-content: space-between; gap: 12px; align-items: center; font-weight: 750; }
+    .small { color: var(--muted); font-size: 13px; line-height: 1.5; }
+    .btn { display: inline-flex; justify-content: center; align-items: center; border-radius: 14px; min-height: 42px; padding: 0 14px; background: var(--blue); color: #fff; font-weight: 850; }
+    .btn.danger { background: var(--red); }
+    .btn.ghost { background: #fff; color: var(--blue); border: 1px solid #b8ceff; }
+    .pill { border-radius: 999px; padding: 5px 9px; font-size: 12px; color: var(--green); background: #eaf8f0; font-weight: 850; }
+    .select { border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin: 10px 0; display: flex; justify-content: space-between; }
+    .progress { height: 12px; border-radius: 999px; background: #e8eef8; overflow: hidden; margin: 20px 0 14px; }
+    .progress span { display: block; height: 100%; width: 42%; background: var(--blue); border-radius: inherit; }
+    .percent { font-size: 44px; font-weight: 950; text-align: center; margin: 12px 0; }
+    .note {
+      border-radius: 18px;
+      background: #fff8eb;
+      border: 1px solid #ffe0a6;
+      color: #965c00;
+      padding: 14px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .api-grid, .entity-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .api-card, .entity-card, .flow-card { padding: 22px; }
+    code { display: inline-block; background: #f1f5ff; color: #174ea6; border-radius: 8px; padding: 2px 7px; font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; }
+    pre { white-space: pre-wrap; margin: 12px 0 0; background: #07152e; color: #d8e7ff; border-radius: 16px; padding: 16px; font-size: 12px; line-height: 1.55; overflow: auto; }
+    .method { font-weight: 900; color: var(--green); }
+    .method.post { color: var(--blue); }
+    .method.delete { color: var(--red); }
+    .method.patch { color: var(--orange); }
+    .flow-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    .step-list { margin: 0; padding-left: 20px; color: var(--muted); line-height: 1.8; }
+    .footer { margin: 36px 0 0; color: var(--muted); font-size: 13px; text-align: center; }
+  </style>
+</head>
+<body>
+  <main class="board">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="eyebrow">BACKEND HANDOFF · FIGMA-LIKE BOARD</div>
+        <h1>FE25 Test APP 后端交付蓝图</h1>
+        <p>基于当前离线 App 原型整理的后端视角设计稿：包含页面流程、关键状态、数据实体、建议接口、权限边界与异步任务。后端同学可直接按此拆分 API、任务队列、数据表与联调范围。</p>
+        <div class="meta-grid">
+          <div class="meta"><strong>6</strong><span class="small">核心业务域</span></div>
+          <div class="meta"><strong>18</strong><span class="small">建议接口</span></div>
+          <div class="meta"><strong>7</strong><span class="small">核心实体</span></div>
+          <div class="meta"><strong>3</strong><span class="small">异步进度任务</span></div>
+        </div>
+      </div>
+      <aside class="legend">
+        <h2>后端关注图例</h2>
+        <div class="legend-list">
+          <div class="legend-item"><span class="dot"></span>蓝色：主流程 / 可正常提交接口</div>
+          <div class="legend-item"><span class="dot green"></span>绿色：已连接 / 采集中 / 成功状态</div>
+          <div class="legend-item"><span class="dot red"></span>红色：删除 / 断开 / 回退 / 清理缓存</div>
+          <div class="legend-item"><span class="dot orange"></span>橙色：异步任务 / 进度轮询 / 待确认</div>
+        </div>
+        <div class="note" style="margin-top:20px">本文件是可离线打开的 Figma 风格后端交付板，不调用真实 Figma API；如需导入 Figma，可将本页面作为设计参考重绘或截图贴入。</div>
+      </aside>
+    </section>
+
+    <div class="section-title"><h2>一、页面流与后端边界</h2><span class="tag">Screens + API responsibilities</span></div>
+    <section class="lanes">
+      <div class="swimlane">
+        <div class="lane-head"><div><h2>权限与设备</h2><p>权限由客户端系统能力控制；后端重点维护设备、连接状态与设备能力。</p></div><span class="tag">Device Domain</span></div>
+        <div class="frames">
+          <div class="phone"><div class="top"><span></span><span class="title">权限申请</span><span></span></div><div class="card"><div class="row"><strong>蓝牙权限</strong><span class="btn ghost">去开启</span></div><p class="small">用于扫描、连接和配对设备</p></div><div class="card"><div class="row"><strong>存储权限</strong><span class="btn ghost">去开启</span></div><p class="small">用于导出数据和存储资源</p></div><div class="btn" style="width:100%;margin-top:18px">全部开启</div><p class="small" style="text-align:center;margin-top:12px">暂不设置后相关功能置灰</p></div>
+          <div class="phone"><div class="top"><span></span><span class="title">首页</span><span></span></div><div class="row"><div><strong>FE25 Test APP</strong><p class="small">1.0.0.2</p></div><span class="btn">扫描设备</span></div><h3 style="margin-top:22px">已连接设备</h3><div class="card row"><strong>E00-01</strong><span><code>升级</code> <code>断开</code></span></div><div class="card row"><strong>E01-01</strong><span><code>升级</code> <code>断开</code></span></div><h3>可连接设备</h3><div class="card row"><strong>E01-02</strong><span><code>连接</code></span></div></div>
+          <div class="phone"><div class="top"><span class="back">返回</span><span class="title">设备详情</span><span></span></div><span class="pill">已连接</span><div class="card"><div class="row"><strong>设备操作（1）</strong><span class="small">00:01:30</span></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px"><span class="btn">采集中...</span><span class="btn danger">停止采集</span></div></div><h3>事件标记</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><span class="btn ghost">标准鱼讯</span><span class="btn ghost">确认中鱼</span><span class="btn ghost">挂底</span><span class="btn danger">删除上一次标记</span></div></div>
+          <div class="phone"><div class="top"><span class="back">返回</span><span class="title">设置</span><span></span></div><div class="card row"><strong>事件标记设置</strong><span>›</span></div><div class="card row"><strong>记录区间设置</strong><span>›</span></div><div class="card row"><strong>当前存储路径</strong><span class="small">内部存储 &gt; FE25Test ›</span></div><div class="card row"><strong>清理缓存</strong><span style="color:var(--red)">2.35 GB</span></div></div>
+        </div>
+      </div>
+
+      <div class="swimlane">
+        <div class="lane-head"><div><h2>固件升级 / 回退</h2><p>统一由目标版本选择触发；高版本为升级，低版本为回退，进度页标题需动态区分。</p></div><span class="tag">Firmware Job</span></div>
+        <div class="frames">
+          <div class="phone"><div class="top"><span class="back">返回</span><span class="title">固件管理</span><span></span></div><div class="screen-title">E00-01</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="card"><p class="small">当前固件版本</p><strong>v1.0.8</strong></div><div class="card"><p class="small">最新版本</p><strong>v1.1.2</strong></div></div><div class="card"><h3>目标固件版本</h3><div class="select"><span>v1.0.7</span><span>⌄</span></div><div class="btn danger" style="width:100%">回退为 v1.0.7 版本</div></div></div>
+          <div class="phone"><div class="top"><span class="back">返回</span><span class="title">固件回退</span><span></span></div><div class="screen-title" style="text-align:center">E00-01</div><p style="text-align:center"><strong>当前版本：</strong>v1.0.8</p><p style="text-align:center"><strong>目标版本：</strong>v1.0.7</p><div class="progress"><span></span></div><div class="percent">42%</div><h3 style="text-align:center">正在传输固件...</h3><p class="small" style="text-align:center">请保持设备靠近手机，回退过程中不要关闭 APP。</p></div>
+          <div class="phone"><div class="top"><span class="back">返回</span><span class="title">固件升级</span><span></span></div><div class="screen-title" style="text-align:center">E00-01</div><p style="text-align:center"><strong>当前版本：</strong>v1.0.8</p><p style="text-align:center"><strong>目标版本：</strong>v1.1.2</p><div class="progress"><span style="width:78%"></span></div><div class="percent">78%</div><h3 style="text-align:center">正在传输固件...</h3><p class="small" style="text-align:center">请保持设备靠近手机，升级过程中不要关闭 APP。</p></div>
+          <div class="phone"><div class="top"><span class="back">返回</span><span class="title">操作完成</span><span></span></div><div class="screen-title" style="text-align:center">E00-01</div><h3 style="text-align:center">已切换到目标版本</h3><p style="text-align:center"><strong>当前版本：</strong>v1.1.2</p><div class="btn" style="width:100%;margin-top:80px">完成</div></div>
+        </div>
+      </div>
+
+      <div class="swimlane">
+        <div class="lane-head"><div><h2>按设备文件导出</h2><p>无多设备导出模式；设备文件夹内多选文件后导出或删除，导出完成页无返回按钮。</p></div><span class="tag">Export Domain</span></div>
+        <div class="frames">
+          <div class="phone"><div class="top"><span></span><span class="title">数据导出</span><span></span></div><h3>选择导出设备</h3><div class="card row"><strong>E00-01</strong><span>›</span></div><div class="card row"><strong>E00-02</strong><span>›</span></div><div class="card row"><strong>E01-01</strong><span>›</span></div><div class="note">进入设备后查看全部采集数据文件</div></div>
+          <div class="phone"><div class="top"><span class="back">返回</span><span class="title">E00-01 文件夹</span><span></span></div><h3>采集数据文件</h3><div class="card"><strong>2026-05-08_09-18-32_标准鱼讯.csv</strong><p class="small">18.6 MB</p></div><div class="card"><strong>2026-05-08_09-42-15_确认中鱼.csv</strong><p class="small">24.3 MB</p></div><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:28px"><span class="btn ghost">全选</span><span class="btn">导出 2</span><span class="btn danger">删除</span></div></div>
+          <div class="phone"><div class="top"><span></span><span class="title">数据导出中</span><span></span></div><div class="percent">76%</div><div class="progress"><span style="width:76%"></span></div><h3 style="text-align:center">正在生成数据包...</h3><p class="small" style="text-align:center">导出文件：2 个<br>请勿关闭 APP。</p><div class="btn ghost" style="width:100%;margin-top:60px">后台导出</div></div>
+          <div class="phone"><div class="top"><span></span><span class="title">导出完成</span><span></span></div><div class="screen-title" style="text-align:center">FE25数据包</div><h3 style="text-align:center">数据已成功导出</h3><p style="text-align:center"><strong>导出文件：</strong>FE25_E00-01_Export.zip</p><div class="card"><h3 style="text-align:center">分享导出文件</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><span class="btn ghost">微信</span><span class="btn ghost">飞书</span><span class="btn ghost">钉钉</span><span class="btn ghost">邮箱</span></div></div><div class="btn" style="width:100%;margin-top:22px">完成</div></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-title"><h2>二、建议接口清单</h2><span class="tag">REST / WebSocket candidates</span></div>
+    <section class="api-grid">
+      <div class="api-card"><h3>设备与连接</h3><p><span class="method">GET</span> <code>/api/devices</code> 设备列表</p><p><span class="method post">POST</span> <code>/api/devices/{id}/connect</code> 连接</p><p><span class="method post">POST</span> <code>/api/devices/{id}/disconnect</code> 断开</p><p><span class="method">GET</span> <code>/api/devices/{id}/telemetry/latest</code> 实时数据</p><pre>{
+  "id": "E00-01",
+  "status": "connected",
+  "firmwareVersion": "v1.0.8",
+  "battery": 82
+}</pre></div>
+      <div class="api-card"><h3>采集与事件</h3><p><span class="method post">POST</span> <code>/api/collections</code> 开始采集</p><p><span class="method post">POST</span> <code>/api/collections/{id}/stop</code> 停止保存</p><p><span class="method post">POST</span> <code>/api/collections/{id}/markers</code> 新增标记</p><p><span class="method.delete">DELETE</span> <code>/api/collections/{id}/markers/latest</code> 删除上一次标记</p><pre>{
+  "deviceId": "E00-01",
+  "eventType": "确认中鱼",
+  "offsetSeconds": 90
+}</pre></div>
+      <div class="api-card"><h3>固件任务</h3><p><span class="method">GET</span> <code>/api/firmwares</code> 版本列表</p><p><span class="method post">POST</span> <code>/api/devices/{id}/firmware-jobs</code> 创建升级/回退任务</p><p><span class="method">GET</span> <code>/api/firmware-jobs/{jobId}</code> 查询进度</p><p><span class="method post">WS</span> <code>/ws/jobs/{jobId}</code> 推送进度</p><pre>{
+  "targetVersion": "v1.0.7",
+  "action": "rollback",
+  "progress": 42
+}</pre></div>
+      <div class="api-card"><h3>文件导出</h3><p><span class="method">GET</span> <code>/api/devices/{id}/files</code> 设备文件夹</p><p><span class="method post">POST</span> <code>/api/export-jobs</code> 多选导出</p><p><span class="method">GET</span> <code>/api/export-jobs/{jobId}</code> 导出进度</p><p><span class="method.delete">DELETE</span> <code>/api/files</code> 多选删除</p><pre>{
+  "deviceId": "E00-01",
+  "fileIds": ["E0001-1", "E0001-2"]
+}</pre></div>
+      <div class="api-card"><h3>分享与通知</h3><p><span class="method post">POST</span> <code>/api/exports/{id}/share</code> 分享</p><p><span class="method">GET</span> <code>/api/share-channels</code> 渠道能力</p><pre>{
+  "channel": "wechat | feishu | dingtalk | email",
+  "recipient": "optional",
+  "fileId": "FE25_E00-01_Export.zip"
+}</pre></div>
+      <div class="api-card"><h3>设置与缓存</h3><p><span class="method">GET</span> <code>/api/settings</code> 设置</p><p><span class="method.patch">PATCH</span> <code>/api/settings</code> 保存设置</p><p><span class="method.delete">DELETE</span> <code>/api/cache</code> 清理缓存</p><pre>{
+  "recordBeforeSeconds": 30,
+  "recordAfterMinutes": 3,
+  "storagePath": "内部存储 > FE25Test"
+}</pre></div>
+    </section>
+
+    <div class="section-title"><h2>三、核心数据实体</h2><span class="tag">Data model</span></div>
+    <section class="entity-grid">
+      <div class="entity-card"><h3>Device</h3><pre>{ id, name, status, firmwareVersion,
+  latestFirmwareVersion, batteryLevel,
+  lastSeenAt, capabilities }</pre></div>
+      <div class="entity-card"><h3>CollectionSession</h3><pre>{ id, deviceId, startedAt, stoppedAt,
+  durationSeconds, status, savedFileIds }</pre></div>
+      <div class="entity-card"><h3>EventMarker</h3><pre>{ id, sessionId, type, offsetSeconds,
+  createdAt, deletedAt }</pre></div>
+      <div class="entity-card"><h3>FirmwareJob</h3><pre>{ id, deviceId, sourceVersion,
+  targetVersion, action, progress,
+  status, errorMessage }</pre></div>
+      <div class="entity-card"><h3>DataFile</h3><pre>{ id, deviceId, collectionId, name,
+  sizeBytes, eventType, capturedAt,
+  checksum, storagePath }</pre></div>
+      <div class="entity-card"><h3>ExportJob</h3><pre>{ id, deviceId, fileIds, outputName,
+  progress, status, downloadUrl,
+  shareRecords }</pre></div>
+    </section>
+
+    <div class="section-title"><h2>四、联调流程与验收点</h2><span class="tag">Acceptance checklist</span></div>
+    <section class="flow-grid">
+      <div class="flow-card"><h3>固件任务验收</h3><ol class="step-list"><li>选择高版本创建任务，后端返回 <code>action=upgrade</code>。</li><li>选择低版本创建任务，后端返回 <code>action=rollback</code>。</li><li>进度接口或 WebSocket 从 0 推送到 100。</li><li>完成后设备版本更新为目标版本。</li><li>回退任务进度页标题必须显示“固件回退”。</li></ol></div>
+      <div class="flow-card"><h3>导出任务验收</h3><ol class="step-list"><li>导出 Tab 直接进入设备选择，不出现多设备导出入口。</li><li>设备文件夹返回文件名、大小、事件类型、时间。</li><li>未选择文件时导出和删除按钮不可用。</li><li>导出完成页无左上角返回，仅支持分享和完成。</li><li>分享渠道返回成功或失败提示。</li></ol></div>
+      <div class="flow-card"><h3>采集任务验收</h3><ol class="step-list"><li>开始采集创建会话并返回 sessionId。</li><li>标记事件记录相对采集时间。</li><li>删除上一次标记只删除当前会话最后一条未删除标记。</li><li>停止采集保存会话、时长和文件。</li><li>采集中不允许清理缓存。</li></ol></div>
+      <div class="flow-card"><h3>权限与设置验收</h3><ol class="step-list"><li>权限未开启时客户端置灰，后端仍需校验请求合法性。</li><li>记录区间后端校验：前 1-120 秒，后 1-30 分钟。</li><li>事件标记至少保留一个启用项。</li><li>存储路径仅作为模拟配置或真实环境的路径偏好。</li><li>清理缓存是高风险操作，必须二次确认。</li></ol></div>
+    </section>
+
+    <p class="footer">FE25 Test APP Backend Figma Board · 离线 HTML 交付物 · 可直接双击打开 backend-figma.html</p>
+  </main>
+</body>
+</html>
