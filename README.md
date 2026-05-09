@@ -48,6 +48,7 @@ npm run android
 
 - `docs/UI_DESIGN_SPEC.md`：UI 设计规范、页面结构、交互状态和验收重点。
 - `docs/FRONTEND_ENGINEERING_SPEC.md`：前端工程拆分、真实设备 / 后端接入方案、测试要求和发布建议。
+- `docs/BACKEND_UI_HANDOFF.md`：UI 已完成后的后端交付文件，包含页面状态、接口依赖、展示字段和联调验收清单。
 - `BACKEND_DEVELOPMENT.md`：后端开发资料，包含前后端边界、接口草案、数据模型、异步任务建议、错误码和联调验收清单。
 
 ## 项目结构
@@ -60,7 +61,7 @@ npm run android
 ├── index.html            # 渲染入口，包含应用容器、弹窗和 Toast 挂载点
 ├── style.css             # 本地样式，包含移动端适配、卡片、按钮、Tab、弹窗和进度条
 ├── app.js                # 单页应用逻辑，负责视图切换、状态流转、进度和交互
-├── docs/                 # UI 设计规范和前端工程接入说明
+├── docs/                 # UI 设计规范、前端工程接入说明和后端 UI 交付文件
 ├── BACKEND_DEVELOPMENT.md # 后端开发资料，包含接口、数据模型和联调验收清单
 └── README.md             # 运行、移动端生成方式和功能说明
 ```
