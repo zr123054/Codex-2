@@ -1,7 +1,15 @@
 # 依赖目录
 node_modules/
 
-# Electron 打包产物
+# Capacitor / iOS / Android 构建产物
+www/
+android/.gradle/
+android/**/build/
+ios/App/Pods/
+ios/App/build/
+ios/DerivedData/
+
+# 通用构建产物
 release/
 dist/
 

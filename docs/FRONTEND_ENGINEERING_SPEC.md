@@ -1,15 +1,15 @@
 # FE25 Test APP 前端工程交付说明
 
-本文档面向前端工程师，说明如何把当前离线 UI 与前端交互基线演进为可接入真实 FE25 产品、真实设备和真实后端的 App。当前代码已完成主要页面、状态和交互闭环；真实接入阶段重点是拆分模块、接入 API / 原生能力、完善错误处理和测试。
+本文档面向前端工程师，说明如何把当前离线 UI 与前端交互基线演进为可安装在 iOS / Android 并接入真实 FE25 产品、真实设备和真实后端的 App。当前代码已完成主要页面、状态和交互闭环；真实接入阶段重点是拆分模块、接入 API / 原生能力、完善错误处理和测试。
 
 ## 1. 当前实现概览
 
 | 文件 | 职责 |
 | --- | --- |
-| `index.html` | 应用入口，提供手机容器、状态栏、弹窗挂载点和 Toast 挂载点 |
+| `index.html` | 应用入口，提供 WebView 根节点、弹窗挂载点和 Toast 挂载点；桌面预览时显示手机外壳 |
 | `style.css` | 全部离线样式，包含布局、卡片、按钮、Tab、弹窗、滚动、进度条 |
 | `app.js` | 当前 SPA 主逻辑，包含本地状态、路由、页面渲染、交互处理 |
-| `main.js` | Electron 主进程，创建独立窗口并加载本地页面 |
+| `capacitor.config.json` | Capacitor 应用配置，定义 iOS / Android 应用 ID、应用名和 Web 资源目录 |
 | `BACKEND_DEVELOPMENT.md` | 后端接口、数据模型、异步任务和联调验收资料 |
 
 ## 2. 真实 App 推荐架构
@@ -18,7 +18,7 @@
 
 ```text
 src/
-├── main.js                 # 前端入口
+├── appEntry.js             # 前端入口
 ├── router.js               # 页面路由和导航守卫
 ├── state/
 │   ├── appState.js         # 全局状态
@@ -35,6 +35,7 @@ src/
 │   ├── exports.js
 │   └── settings.js
 ├── native/
+│   ├── capacitorBridge.js  # Capacitor 插件与自定义原生能力封装
 │   ├── permissions.js      # 蓝牙 / 存储权限桥接
 │   ├── bluetooth.js        # 真实蓝牙扫描、连接、断开
 │   ├── fileSystem.js       # 文件路径、导出保存、分享
@@ -257,12 +258,12 @@ shareExport(exportId, channel): Promise<ShareResult>;
 - 固件升级 / 回退中断恢复策略。
 - 长时间采集的内存和性能。
 - 大文件导出、删除、分享。
-- Windows 免安装包权限、路径、杀毒软件拦截情况。
+- iOS / Android 真机权限、后台切换、系统分享、文件保存和安装包签名情况。
 
 ## 9. 发布配置建议
 
-- 环境配置：通过本地 JSON 或 Electron preload 暴露 `apiBaseUrl`、日志级别、设备 SDK 配置。
+- 环境配置：通过本地 JSON、Capacitor 配置或原生桥接暴露 `apiBaseUrl`、日志级别、设备 SDK 配置。
 - 日志：保留设备连接、采集、固件任务、导出任务、错误码。
 - 崩溃恢复：固件任务、导出任务需要可恢复查询。
 - 版本号：App 版本、前端资源版本、设备固件版本分开管理。
-- 安全：Electron 继续关闭 Node 注入，后续如需原生桥接应使用 preload 白名单 API。
+- 安全：原生桥接必须使用白名单 API，避免 WebView 直接暴露不必要的系统能力。
