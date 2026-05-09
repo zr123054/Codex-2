@@ -3,7 +3,7 @@ const { app, BrowserWindow, Menu } = require('electron');
 
 const isMac = process.platform === 'darwin';
 
-// 桌面免安装应用入口：只加载本地文件，不启用 Node 注入，不依赖网络服务。
+// FE25 桌面应用入口：只加载本地前端资源，不启用 Node 注入，后续真实能力通过受控桥接接入。
 function createMainWindow() {
   const window = new BrowserWindow({
     width: 430,

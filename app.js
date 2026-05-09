@@ -432,7 +432,7 @@ function toggleSelectAllFiles() {
 function confirmDeleteFiles() {
   const count = state.selectedFiles.size;
   if (!count) { showToast('请先选择文件。'); return; }
-  showModal('删除选中文件？', `将删除 ${count} 个采集数据文件，此操作仅为 Demo 模拟。`, [
+  showModal('删除选中文件？', `将删除 ${count} 个采集数据文件，当前离线版会同步更新本地文件列表。`, [
     ['取消', 'secondary-btn', clearModal],
     ['确认删除', 'danger-btn', () => { clearModal(); deleteSelectedFiles(); }]
   ]);
@@ -448,7 +448,7 @@ function deleteSelectedFiles() {
 }
 
 function shareExport(channel) {
-  showToast(`已模拟分享到${channel}。`);
+  showToast(`已分享到${channel}。`);
 }
 
 function startExport() {

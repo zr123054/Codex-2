@@ -1,5 +1,10 @@
+# 依赖目录
 node_modules/
+
+# Electron 打包产物
 release/
 dist/
+
+# 日志与系统临时文件
 npm-debug.log*
 .DS_Store

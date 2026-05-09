@@ -1,10 +1,10 @@
 {
-  "name": "fe25-test-app-demo",
+  "name": "fe25-test-app",
   "version": "1.0.0",
-  "description": "FE25 Test APP 免安装桌面原型 Demo",
+  "description": "FE25 Test APP 免安装应用与真实产品前端基线",
   "main": "main.js",
   "private": true,
-  "author": "FE25 Demo Team",
+  "author": "FE25 Product Team",
   "license": "UNLICENSED",
   "scripts": {
     "start": "electron .",
@@ -15,14 +15,13 @@
     "dist:linux": "electron-builder --linux AppImage"
   },
   "build": {
-    "appId": "com.fe25.testapp.demo",
+    "appId": "com.fe25.testapp",
     "productName": "FE25 Test APP",
     "asar": true,
     "files": [
       "index.html",
       "style.css",
       "app.js",
-      "script.js",
       "main.js",
       "README.md",
       "package.json"

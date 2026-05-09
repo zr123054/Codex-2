@@ -28,7 +28,7 @@ button, input, select { font: inherit; }
 button { border: 0; cursor: pointer; }
 button:disabled { cursor: not-allowed; }
 
-.demo-stage {
+.app-stage {
   min-height: 100vh;
   display: grid;
   place-items: center;
@@ -347,7 +347,7 @@ button:disabled { cursor: not-allowed; }
 .toast.show { opacity: 1; transform: translateY(0); }
 
 @media (max-width: 480px) {
-  .demo-stage { padding: 0; }
+  .app-stage { padding: 0; }
   .phone-shell { width: 100vw; height: 100vh; border-radius: 0; padding: 0; }
   .phone-shell::before, .phone-speaker, .home-indicator { display: none; }
   .app-screen, .tabbar { border-radius: 0; left: 0; right: 0; bottom: 0; }
