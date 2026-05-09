@@ -207,14 +207,14 @@ function firmwareProgress() {
   const isRollback = compareVersion(state.selectedFirmwareVersion, state.firmwareSourceVersion) < 0;
   const title = isRollback ? '固件回退' : '固件升级';
   const notice = isRollback ? '回退' : '升级';
-  return page(`${topBar(title, 'firmware', 'data-action="firmware-back"')}
+  return page(`<div class="top-bar title-only"><span></span><h1>${title}</h1><span></span></div>
     <div class="big-device">${state.currentDevice}</div><p><strong>当前版本：</strong>${state.firmwareSourceVersion}</p><p><strong>目标版本：</strong>${state.selectedFirmwareVersion}</p>
     <div class="progress-wrap"><div class="progress-fill" style="width:${state.firmwareProgress}%"></div></div><div class="percent">${state.firmwareProgress}%</div>
     <h2 class="section-title">正在传输固件...</h2><p class="desc">请保持设备靠近手机，${notice}过程中不要关闭 APP。</p>`, { noTab: true, progress: true });
 }
 
 function firmwareDone() {
-  return page(`${topBar('操作完成', 'firmware')}<div class="big-device">${state.currentDevice}</div><h2>${state.currentDevice} 已切换到目标版本</h2><p><strong>当前版本：</strong>${state.selectedFirmwareVersion}</p><button class="primary-btn full" data-nav="firmware">完成</button>`, { noTab: true, progress: true });
+  return page(`<div class="top-bar title-only"><span></span><h1>操作完成</h1><span></span></div><div class="big-device">${state.currentDevice}</div><h2>${state.currentDevice} 已切换到目标版本</h2><p><strong>当前版本：</strong>${state.selectedFirmwareVersion}</p><button class="primary-btn full" data-nav="firmware">完成</button>`, { noTab: true, progress: true });
 }
 
 function deviceDetail() {
@@ -302,7 +302,6 @@ function handleAction(action) {
     'all-permission': () => { state.permissions.bluetooth = true; state.permissions.storage = true; navigate('home'); },
     scan: scanDevices,
     'confirm-firmware-change': confirmFirmwareChange,
-    'firmware-back': () => showToast('升级过程中不建议退出。'),
     'start-collect': startCollect,
     'stop-collect': confirmStopCollect,
     'start-export': startExport,
