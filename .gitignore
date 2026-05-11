@@ -1,0 +1,2 @@
+# Generated Office exports are binary and should be built locally from source.
+*.pptx
