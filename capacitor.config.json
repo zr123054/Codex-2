@@ -1,0 +1,15 @@
+{
+  "appId": "com.fe25.testapp",
+  "appName": "FE25 Test APP",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https"
+  },
+  "ios": {
+    "contentInset": "automatic"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

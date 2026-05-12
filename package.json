@@ -1,0 +1,26 @@
+{
+  "name": "fe25-test-app",
+  "version": "1.0.0",
+  "description": "FE25 Test APP iOS/Android 可安装应用前端基线",
+  "private": true,
+  "author": "FE25 Product Team",
+  "license": "UNLICENSED",
+  "scripts": {
+    "check": "node --check app.js",
+    "prepare:web": "node -e \"const fs=require('fs');fs.rmSync('www',{recursive:true,force:true});fs.mkdirSync('www');for(const f of ['index.html','style.css','app.js'])fs.copyFileSync(f,'www/'+f)\"",
+    "cap:add:ios": "npm run prepare:web && cap add ios",
+    "cap:add:android": "npm run prepare:web && cap add android",
+    "cap:sync": "npm run prepare:web && cap sync",
+    "cap:copy": "npm run prepare:web && cap copy",
+    "ios": "cap open ios",
+    "android": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.1.2"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/cli": "^6.1.2",
+    "@capacitor/ios": "^6.1.2"
+  }
+}
