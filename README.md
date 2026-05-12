@@ -46,6 +46,8 @@ npm run android
 
 ## 真实产品开发资料
 
+- `figma-html-to-design.html`：按 iPhone 17 Pro Max 画布生成的 Figma HTML to Design 导入页面。
+- `docs/FIGMA_HTML_TO_DESIGN.md`：Figma 导入步骤和页面说明。
 - `docs/UI_DESIGN_SPEC.md`：UI 设计规范、页面结构、交互状态和验收重点。
 - `docs/FRONTEND_ENGINEERING_SPEC.md`：前端工程拆分、真实设备 / 后端接入方案、测试要求和发布建议。
 - `docs/BACKEND_UI_HANDOFF.md`：UI 已完成后的后端交付文件，包含页面状态、接口依赖、展示字段和联调验收清单。
@@ -59,6 +61,7 @@ npm run android
 ├── capacitor.config.json # iOS / Android 应用 ID、应用名、Web 资源目录和平台配置
 ├── www/                  # 同步前由 npm 脚本生成的 Capacitor Web 资源目录，不提交
 ├── index.html            # 渲染入口，包含应用容器、弹窗和 Toast 挂载点
+├── figma-html-to-design.html # Figma HTML to Design 导入页面，尺寸为 440 × 956
 ├── style.css             # 本地样式，包含移动端适配、卡片、按钮、Tab、弹窗和进度条
 ├── app.js                # 单页应用逻辑，负责视图切换、状态流转、进度和交互
 ├── docs/                 # UI 设计规范、前端工程接入说明和后端 UI 交付文件

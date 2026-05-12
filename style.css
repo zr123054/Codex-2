@@ -1,4 +1,6 @@
 :root {
+  --iphone-17-pro-max-width: 440px;
+  --iphone-17-pro-max-height: 956px;
   --primary: #1268ff;
   --primary-dark: #061b4f;
   --primary-soft: #eaf2ff;
@@ -37,10 +39,10 @@ button:disabled { cursor: not-allowed; }
 
 .phone-shell {
   position: relative;
-  width: 390px;
-  height: 844px;
+  width: var(--iphone-17-pro-max-width);
+  height: var(--iphone-17-pro-max-height);
   padding: 12px;
-  border-radius: 46px;
+  border-radius: 52px;
   background: linear-gradient(145deg, #12161e, #05070a);
   box-shadow: var(--shadow);
   overflow: hidden;
@@ -51,7 +53,7 @@ button:disabled { cursor: not-allowed; }
   position: absolute;
   inset: 4px;
   border: 2px solid rgba(255,255,255,0.2);
-  border-radius: 42px;
+  border-radius: 48px;
   pointer-events: none;
 }
 
@@ -61,9 +63,9 @@ button:disabled { cursor: not-allowed; }
   top: 22px;
   left: 50%;
   transform: translateX(-50%);
-  width: 118px;
-  height: 34px;
-  border-radius: 22px;
+  width: 136px;
+  height: 38px;
+  border-radius: 24px;
   background: #020305;
   box-shadow: inset -12px 0 18px rgba(0, 102, 255, 0.15);
 }
@@ -71,9 +73,9 @@ button:disabled { cursor: not-allowed; }
 .status-bar {
   position: absolute;
   z-index: 8;
-  top: 22px;
-  left: 34px;
-  right: 34px;
+  top: 24px;
+  left: 38px;
+  right: 38px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -104,7 +106,7 @@ button:disabled { cursor: not-allowed; }
 .app-screen {
   position: relative;
   height: 100%;
-  border-radius: 36px;
+  border-radius: 42px;
   overflow: hidden;
   background: #fff;
 }
@@ -130,7 +132,7 @@ button:disabled { cursor: not-allowed; }
   position: absolute;
   z-index: 9;
   left: 50%;
-  bottom: 20px;
+  bottom: 22px;
   transform: translateX(-50%);
   width: 132px;
   height: 5px;
